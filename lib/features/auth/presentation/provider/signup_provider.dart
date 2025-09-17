@@ -1,6 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
+import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxfoot_seller/features/admin/presentation/screens/admin_waiting_banner_screen.dart';
 
 class SignupProvider extends ChangeNotifier {
   final GlobalKey<FormState> _signupFormkey = GlobalKey<FormState>(
@@ -10,21 +14,28 @@ class SignupProvider extends ChangeNotifier {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPassController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool _isEnterPasswordVisible = false;
   bool _isCreatePasswordVisible = false;
   bool _rememberMe = false;
   bool _isLoading = false;
+  String? _errorMessage;
 
   GlobalKey<FormState> get signupFormkey => _signupFormkey;
   TextEditingController get nameController => _nameController;
   TextEditingController get emailController => _emailController;
   TextEditingController get passwordController => _passwordController;
   TextEditingController get confirmPassController => _confirmPassController;
+  TextEditingController get phoneController => _phoneController;
+
   bool get isEnterPasswordVisible => _isEnterPasswordVisible;
   bool get isCreatePasswordVisible => _isCreatePasswordVisible;
   bool get rememberMe => _rememberMe;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   void togglePasswordVisibleEnter() {
     _isEnterPasswordVisible = !_isEnterPasswordVisible;
@@ -46,27 +57,73 @@ class SignupProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> handleLoging(BuildContext context) async {
-    if (_signupFormkey.currentState!.validate()) {
-      setLoading(true);
+  void setError(String? error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
 
-      try {
-        await Future.delayed(Duration(seconds: 3));
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        // Handle error
+  Future<void> handleSignup(BuildContext context) async {
+    if (_signupFormkey.currentState!.validate()) {
+      if (_passwordController.text != _confirmPassController.text) {
+        setError('Passwords do not match');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
+            content: Text('Passwords do not match'),
             backgroundColor: Colors.red,
           ),
         );
+        return;
+      }
+      setLoading(true);
+      try {
+        // Create user with Firebase Auth
+        UserCredential userCredential = await _auth
+            .createUserWithEmailAndPassword(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
+        // Check if the user was created successfully
+        if (userCredential.user != null) {
+          final String uid = userCredential.user!.uid;
+          // Store seller data in Firestore
+          await _firestore.collection('sellers').doc(uid).set({
+            'uid': uid,
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'phone': _phoneController.text.trim(),
+            'createdAt': Timestamp.now(),
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sign-up successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Navigate to login screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => AdminWaitingBannerScreen()),
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        setError(e.message);
+        log(e.toString());
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Sign-up failed: ${e.message}'),
+        //     backgroundColor: Colors.red,
+        //   ),
+        // );
+      } catch (e) {
+        setError(e.toString());
+        log(e.toString());
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Sign-up failed: ${e.toString()}'),
+        //     backgroundColor: Colors.red,
+        //   ),
+        // );
       } finally {
         setLoading(false);
       }
@@ -79,6 +136,7 @@ class SignupProvider extends ChangeNotifier {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPassController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 }

@@ -172,7 +172,7 @@ class LoginForm extends StatelessWidget {
                 CustomTextFormField(
                   label: 'Enter Email',
                   hintText: 'example@fluxfoot.com',
-                  controller: loginprovider.emeilController,
+                  controller: loginprovider.emailController,
                   focusNode: loginprovider.emailFocus,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,

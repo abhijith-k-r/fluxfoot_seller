@@ -165,7 +165,7 @@ class SignupForm extends StatelessWidget {
                     label: 'Enter Name',
                     hintText: 'Marcus Rashford',
                     controller: signupprovider.nameController,
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.name,
                     textInputAction: TextInputAction.next,
                     prefIcon: Icon(
                       Icons.person,
@@ -175,13 +175,9 @@ class SignupForm extends StatelessWidget {
 
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
+                        return 'Please enter your Name';
                       }
-                      if (!RegExp(
-                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                      ).hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
+
                       return null;
                     },
                   ),
@@ -200,9 +196,7 @@ class SignupForm extends StatelessWidget {
                       size: isMobile ? 24 : 20,
                       color: Colors.grey.shade400,
                     ),
-                    onFieldSubmitted: (_) {
-                      // FocusScope.of(context).requestFocus(signupprovider.eail);
-                    },
+
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
@@ -224,7 +218,7 @@ class SignupForm extends StatelessWidget {
                     hintText: '••••••••',
                     controller: signupprovider.passwordController,
                     keyboardType: TextInputType.visiblePassword,
-                    textInputAction: TextInputAction.done,
+                    textInputAction: TextInputAction.next,
                     obscureText: !signupprovider.isEnterPasswordVisible,
                     prefIcon: Icon(
                       Icons.lock,
@@ -241,8 +235,7 @@ class SignupForm extends StatelessWidget {
                             : Icons.visibility_off_rounded,
                       ),
                     ),
-                    onFieldSubmitted: (_) =>
-                        signupprovider.handleLoging(context),
+
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your password';
@@ -262,7 +255,7 @@ class SignupForm extends StatelessWidget {
                     hintText: '••••••••',
                     controller: signupprovider.confirmPassController,
                     keyboardType: TextInputType.visiblePassword,
-                    textInputAction: TextInputAction.done,
+                    textInputAction: TextInputAction.next,
                     obscureText: !signupprovider.isCreatePasswordVisible,
                     // enabled: !signupprovider.isLoading,
                     prefIcon: Icon(
@@ -292,6 +285,32 @@ class SignupForm extends StatelessWidget {
                     },
                   ),
                   SizedBox(height: 20),
+
+                  //! Phone Number
+                  CustomTextFormField(
+                    label: 'Phone Number',
+                    hintText: '+91 (000) 00-0000',
+                    controller: signupprovider.phoneController,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.done,
+                    prefIcon: Icon(
+                      Icons.phone,
+                      size: isMobile ? 24 : 20,
+                      color: Colors.grey.shade400,
+                    ),
+
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your Phone Number';
+                      }
+                      if (value.length < 10) {
+                        return 'Number must be at least 10 Numbers';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  SizedBox(height: 20),
                   // ! agree to the terms and conditions
                   AuthCheckBox(
                     mainAxis: MainAxisAlignment.center,
@@ -317,14 +336,14 @@ class SignupForm extends StatelessWidget {
 
                   SizedBox(height: 32),
 
-                  // Login Button
+                  // signUp Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
                       onPressed: signupprovider.isLoading
                           ? null
-                          : () => signupprovider.handleLoging(context),
+                          : () => signupprovider.handleSignup(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF4B5EFC),
                         foregroundColor: Colors.white,
