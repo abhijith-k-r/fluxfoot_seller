@@ -1,7 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxfoot_seller/features/dashboard/presentation/screens/dashboard.dart';
 
 class LoginProvider extends ChangeNotifier {
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>(
@@ -19,7 +22,7 @@ class LoginProvider extends ChangeNotifier {
   String? _errorMessage;
 
   GlobalKey<FormState> get loginFormKey => _loginFormKey;
-  
+
   TextEditingController get emailController => _emailController;
   TextEditingController get passwordController => _passwordController;
   FocusNode get emailFocus => _emailFocus;
@@ -53,10 +56,13 @@ class LoginProvider extends ChangeNotifier {
     if (_loginFormKey.currentState!.validate()) {
       setLoading(true);
 
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
       try {
         await _auth.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+          email: email,
+          password: password,
         );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -64,27 +70,30 @@ class LoginProvider extends ChangeNotifier {
             backgroundColor: Colors.green,
           ),
         );
+
         // Navigate to home screen
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => HomeScreen()),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => Dashboard()),
+        );
       } on FirebaseAuthException catch (e) {
         setError(e.message);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${e.message}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        log('Login Failed 1: $e');
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Login failed1: ${e.message}'),
+        //     backgroundColor: Colors.red,
+        //   ),
+        // );
       } catch (e) {
         setError(e.toString());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        log('Login Failed 2 : $e');
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Login failed2: ${e.toString()}'),
+        //     backgroundColor: Colors.red,
+        //   ),
+        // );
       } finally {
         setLoading(false);
       }

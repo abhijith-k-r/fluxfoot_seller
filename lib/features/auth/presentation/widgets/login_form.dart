@@ -225,7 +225,7 @@ class LoginForm extends StatelessWidget {
                           : Icons.visibility_off_rounded,
                     ),
                   ),
-                  // onFieldSubmitted: (_) => loginprovider.handleLoging(context),
+                  onFieldSubmitted: (_) => loginprovider.handleLoging(context),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
@@ -249,7 +249,9 @@ class LoginForm extends StatelessWidget {
                   ),
                   prefText: 'Remember me',
                   sufWidget: TextButton(
-                    onPressed: () {},
+                    onPressed: loginprovider.isLoading
+                        ? null
+                        : () => loginprovider.handleForgotPassword(context),
                     child: Text(
                       'Forgot password?',
                       style: GoogleFonts.openSans(

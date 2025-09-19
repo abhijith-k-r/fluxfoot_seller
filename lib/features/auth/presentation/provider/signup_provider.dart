@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/features/admin/presentation/screens/admin_waiting_banner_screen.dart';
+import 'package:fluxfoot_seller/core/firebase/auth/authgate.dart';
 
 class SignupProvider extends ChangeNotifier {
   final GlobalKey<FormState> _signupFormkey = GlobalKey<FormState>(
@@ -90,8 +90,10 @@ class SignupProvider extends ChangeNotifier {
             'uid': uid,
             'name': _nameController.text.trim(),
             'email': _emailController.text.trim(),
+            'password': _confirmPassController.text.trim(),
             'phone': _phoneController.text.trim(),
             'createdAt': Timestamp.now(),
+            'status': 'pending',
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -103,7 +105,7 @@ class SignupProvider extends ChangeNotifier {
           // Navigate to login screen
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => AdminWaitingBannerScreen()),
+            MaterialPageRoute(builder: (_) => AuthGate()),
           );
         }
       } on FirebaseAuthException catch (e) {
