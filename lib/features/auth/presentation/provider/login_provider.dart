@@ -4,7 +4,8 @@ import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/features/dashboard/presentation/screens/dashboard.dart';
+import 'package:fluxfoot_seller/core/firebase/auth/authgate.dart';
+import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 
 class LoginProvider extends ChangeNotifier {
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>(
@@ -65,35 +66,35 @@ class LoginProvider extends ChangeNotifier {
           password: password,
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+           SnackBar(
             content: Text('Login successful!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.succesGreen,
           ),
         );
 
         // Navigate to home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => Dashboard()),
+          MaterialPageRoute(builder: (_) => AuthGate()),
         );
       } on FirebaseAuthException catch (e) {
         setError(e.message);
         log('Login Failed 1: $e');
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('Login failed1: ${e.message}'),
-        //     backgroundColor: Colors.red,
-        //   ),
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed1: ${e.message}'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
       } catch (e) {
         setError(e.toString());
         log('Login Failed 2 : $e');
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('Login failed2: ${e.toString()}'),
-        //     backgroundColor: Colors.red,
-        //   ),
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed2: ${e.toString()}'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
       } finally {
         setLoading(false);
       }
@@ -132,7 +133,7 @@ class LoginProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Password reset email sent!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.succesGreen,
           ),
         );
       } on FirebaseAuthException catch (e) {
@@ -140,7 +141,7 @@ class LoginProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.message}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.errorRed,
           ),
         );
       } finally {

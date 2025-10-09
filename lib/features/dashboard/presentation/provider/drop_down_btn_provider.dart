@@ -83,7 +83,7 @@ class SellerDropdown extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color:
-                  Colors.deepPurpleAccent, // Matches the image's button color
+                  Colors.deepPurpleAccent, 
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Row(
@@ -107,15 +107,3 @@ class SellerDropdown extends StatelessWidget {
     );
   }
 }
-
-
-      // _handleLogOut(context);
-// Future<void> _handleLogOut(BuildContext context) async {
-  //   // final auth = FirebaseAuthService();
-  //   final authAdmin = AuthenticationAdmin();
-
-  //   authAdmin.setLoggedIn(false);
-  //   //! Sign out from Firebase Authentication
-  //   auth.signOut();
-  //   fadePushAndRemoveUntil(context, LogingScreen());
-  // }

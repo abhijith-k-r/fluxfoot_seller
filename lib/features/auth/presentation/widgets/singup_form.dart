@@ -4,7 +4,6 @@ import 'package:fluxfoot_seller/features/auth/presentation/provider/keyboard_pro
 import 'package:fluxfoot_seller/features/auth/presentation/provider/signup_provider.dart';
 import 'package:fluxfoot_seller/features/auth/presentation/screens/loging_screenn.dart';
 import 'package:fluxfoot_seller/features/auth/presentation/widgets/login_form.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -119,7 +118,7 @@ class MobileSignUpLayout extends StatelessWidget {
   }
 }
 
-// Separate LoginForm Widget
+//! Separate SignUPForm Widget
 class SignupForm extends StatelessWidget {
   const SignupForm({super.key});
 
@@ -174,14 +173,129 @@ class SignupForm extends StatelessWidget {
                     ),
 
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      final trimmedValue = value?.trim();
+
+                      if (trimmedValue == null || trimmedValue.isEmpty) {
                         return 'Please enter your Name';
+                      }
+                      if (!RegExp(r"^[a-zA-Z\s.-]+$").hasMatch(trimmedValue)) {
+                        return 'Name can only contain letters, spaces, hyphens, or periods.';
+                      }
+                      if (trimmedValue.length < 2) {
+                        return 'Name must be at least 2 characters long.';
                       }
 
                       return null;
                     },
                   ),
 
+                  SizedBox(height: 24),
+
+                  // !Store Name Field (NEW)
+                  CustomTextFormField(
+                    label: 'Store Name (Public Facing)',
+                    hintText: 'The Kit Depot',
+                    controller: signupprovider.storeNameController,
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    prefIcon: Icon(
+                      Icons.store,
+                      size: isMobile ? 24 : 20,
+                      color: Colors.grey.shade400,
+                    ),
+                    validator: (value) {
+                      final trimmedValue = value?.trim();
+                      if (trimmedValue == null || trimmedValue.isEmpty) {
+                        return 'Please enter your public Store Name';
+                      }
+                      if (trimmedValue.length < 3) {
+                        return 'Store Name must be at least 3 characters long.';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 24),
+
+                  // !Business Type Dropdown (NEW)
+                  InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Business Type',
+                      hintText: 'Select business structure',
+                      prefixIcon: Icon(
+                        Icons.business,
+                        size: isMobile ? 24 : 20,
+                        color: Colors.grey.shade400,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: signupprovider.selectedBusinessType.isEmpty
+                            ? null
+                            : signupprovider.selectedBusinessType,
+                        hint: Text('Select Business Type'),
+                        items: signupprovider.businessTypes.map((String type) {
+                          return DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type),
+                          );
+                        }).toList(),
+                        onChanged: signupprovider.isLoading
+                            ? null
+                            : (String? newValue) {
+                                signupprovider.setSelectedBusinessType(
+                                  newValue ?? '',
+                                );
+                              },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+
+                  // !Business License Document Upload (NEW FIELD) 📄
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Business License Upload',
+                        style: GoogleFonts.openSans(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: signupprovider.isLoading
+                            ? null
+                            : () => signupprovider.pickBusinessLicense(context),
+                        icon: Icon(Icons.cloud_upload),
+                        label: Text(
+                          signupprovider.businessLicenseFileName.isEmpty
+                              ? 'Select Business License (PDF/JPG)'
+                              : 'Change File: ${signupprovider.businessLicenseFileName}',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      if (signupprovider.signupFormkey.currentState
+                                  ?.validate() ==
+                              false &&
+                          signupprovider.businessLicenseFileName.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0, left: 12.0),
+                          child: Text(
+                            'Please upload your business license',
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  ),
                   SizedBox(height: 24),
 
                   // !Email Field
@@ -311,6 +425,27 @@ class SignupForm extends StatelessWidget {
                   ),
 
                   SizedBox(height: 20),
+                  // !Warehouse Address / Shipping Origin (NEW)
+                  CustomTextFormField(
+                    label: 'Warehouse/Shipping Origin Address',
+                    hintText: '123 Stadium Rd, Manchester',
+                    controller: signupprovider.warehouseController,
+                    keyboardType: TextInputType.streetAddress,
+                    textInputAction: TextInputAction.done,
+                    prefIcon: Icon(
+                      Icons.location_on,
+                      size: isMobile ? 24 : 20,
+                      color: Colors.grey.shade400,
+                    ),
+                    validator: (value) {
+                      final trimmedValue = value?.trim();
+                      if (trimmedValue == null || trimmedValue.isEmpty) {
+                        return 'Please enter your warehouse location';
+                      }
+                      return null;
+                    },
+                  ),
+
                   // ! agree to the terms and conditions
                   AuthCheckBox(
                     mainAxis: MainAxisAlignment.center,
@@ -336,7 +471,7 @@ class SignupForm extends StatelessWidget {
 
                   SizedBox(height: 32),
 
-                  // signUp Button
+                  //! signUp Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,

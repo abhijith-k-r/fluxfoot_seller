@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/features/auth/presentation/provider/keyboard_provider.dart';
 import 'package:fluxfoot_seller/features/auth/presentation/provider/login_provider.dart';
 import 'package:fluxfoot_seller/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxfoot_seller/features/auth/presentation/widgets/web_login_form.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {
