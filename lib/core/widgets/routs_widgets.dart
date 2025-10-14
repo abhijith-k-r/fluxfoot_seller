@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
-
+import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 
 // ! Fade Push
 void fadePush(BuildContext context, Widget page) {
@@ -73,12 +72,12 @@ void showOverlaySnackbar(BuildContext context, String message, Color color) {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 16),
-                const SizedBox(width: 10),
-                Text(message, style: const TextStyle(color: Colors.white)),
-                const SizedBox(width: 30),
+                Icon(Icons.check_circle, color: AppColors.iconWhite, size: 16),
+                SizedBox(width: 10),
+                Text(message, style: TextStyle(color: AppColors.textWite)),
+                SizedBox(width: 30),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 15),
+                  icon: Icon(Icons.close, color: AppColors.iconWhite, size: 15),
                   onPressed: () {
                     overlayEntry.remove();
                   },

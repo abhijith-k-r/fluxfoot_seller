@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/firebase/auth/authgate.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/provider/keyboard_provider.dart';
+import 'package:fluxfoot_seller/features/auth/view_model/provider/keyboard_provider.dart';
 import 'package:fluxfoot_seller/features/dashboard/presentation/provider/drop_down_btn_provider.dart';
 import 'package:fluxfoot_seller/firebase_options.dart';
 import 'package:provider/provider.dart';

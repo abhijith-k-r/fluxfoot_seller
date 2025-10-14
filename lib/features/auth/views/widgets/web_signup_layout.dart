@@ -1,10 +1,9 @@
-// Separate Widget for Web Layout
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxfoot_seller/features/auth/views/widgets/signup_form.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class WebLoginLayout extends StatelessWidget {
-  const WebLoginLayout({super.key});
+class WebSignUpLayout extends StatelessWidget {
+  const WebSignUpLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +29,7 @@ class WebLoginLayout extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: Center(child: LoginForm())),
+        Expanded(child: Center(child: SignupForm())),
       ],
     );
   }

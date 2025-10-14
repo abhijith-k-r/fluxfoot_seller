@@ -1,10 +1,10 @@
 // ignore_for_file: avoid_types_as_parameter_names, non_constant_identifier_names
 
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/provider/keyboard_provider.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/provider/login_provider.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/widgets/login_form.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/widgets/web_login_form.dart';
+import 'package:fluxfoot_seller/features/auth/view_model/provider/keyboard_provider.dart';
+import 'package:fluxfoot_seller/features/auth/view_model/provider/login_provider.dart';
+import 'package:fluxfoot_seller/features/auth/views/widgets/mobile_login_layout.dart';
+import 'package:fluxfoot_seller/features/auth/views/widgets/web_login_layout.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {

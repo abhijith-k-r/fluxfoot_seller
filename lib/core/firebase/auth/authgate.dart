@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/features/admin/presentation/screens/admin_waiting_banner_screen.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/screens/loging_screenn.dart';
+import 'package:fluxfoot_seller/features/auth/views/screens/loging_screenn.dart';
 import 'package:fluxfoot_seller/features/dashboard/presentation/screens/blocked_screen.dart';
 import 'package:fluxfoot_seller/features/dashboard/presentation/screens/dashboard.dart';
 

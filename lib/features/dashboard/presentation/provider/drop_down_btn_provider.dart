@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/widgets/routs_widgets.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/screens/loging_screenn.dart';
+import 'package:fluxfoot_seller/features/auth/views/screens/loging_screenn.dart';
 import 'package:provider/provider.dart';
 
 class DropDownButtonProvider extends ChangeNotifier {

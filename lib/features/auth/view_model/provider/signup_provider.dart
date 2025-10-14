@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxfoot_seller/core/firebase/auth/authgate.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
+import 'package:fluxfoot_seller/core/widgets/routs_widgets.dart';
 
 const String kCloudinaryCloudName = 'dryij9oei';
 const String kCloudinaryUploadPreset = 'sr_default';
@@ -56,6 +57,8 @@ class SignupProvider extends ChangeNotifier {
   TextEditingController get warehouseController => _warehouseController;
   String get selectedBusinessType => _selectedBusinessType;
   String get businessLicenseFileName => _businessLicenseFileName;
+  File? get businessLicenseFile => _businessLicenseFile;
+  Uint8List? get licenseFileBytes => _licenseFileBytes;
 
   bool get isEnterPasswordVisible => _isEnterPasswordVisible;
   bool get isCreatePasswordVisible => _isCreatePasswordVisible;
@@ -104,6 +107,14 @@ class SignupProvider extends ChangeNotifier {
         ),
       );
     }
+  }
+
+  // Add a method to clear/remove the selected file
+  void clearBusinessLicense() {
+    _businessLicenseFile = null;
+    _businessLicenseFileName = '';
+    _licenseFileBytes = null;
+    notifyListeners();
   }
 
   void togglePasswordVisibleEnter() {
@@ -208,26 +219,6 @@ class SignupProvider extends ChangeNotifier {
         if (userCredential.user != null) {
           final String uid = userCredential.user!.uid;
 
-          // final storageRef = _storage
-          //     .ref()
-          //     .child('business_licenses')
-          //     .child('$uid-${DateTime.now().millisecondsSinceEpoch}');
-
-          // if (kIsWeb) {
-          //   if (_licenseFileBytes != null) {
-          //     log('Web upload: Bytes are present. Starting upload.');
-          //     await storageRef.putData(_licenseFileBytes!);
-          //   } else {
-          //     log('ERROR: Web upload attempted but _licenseFileBytes is null.');
-          //     throw Exception('Licnse file dta not found for web upload.');
-          //   }
-          // } else {
-          //   log('Native upload: File is present. Starting upload.');
-          //   await storageRef.putFile(_businessLicenseFile!);
-          // }
-
-          // final String licenseUrl = await storageRef.getDownloadURL();
-
           log('Starting Cloudinary upad...');
           final String licenseUrl = await _uploadToCloudinary(uid);
           log('Cloudinary uplad successful. URL : $licenseUrl');
@@ -247,11 +238,10 @@ class SignupProvider extends ChangeNotifier {
             'warehouse': _warehouseController.text.trim(),
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Sign-up successful!'),
-              backgroundColor: AppColors.succesGreen,
-            ),
+          showOverlaySnackbar(
+            context,
+            'Sign-up successful!💫',
+            AppColors.succesGreen,
           );
           // Navigate to login screen
           Navigator.pushReplacement(

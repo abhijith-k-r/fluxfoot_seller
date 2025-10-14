@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/provider/keyboard_provider.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/provider/signup_provider.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/widgets/singup_form.dart';
+import 'package:fluxfoot_seller/features/auth/view_model/provider/keyboard_provider.dart';
+import 'package:fluxfoot_seller/features/auth/view_model/provider/signup_provider.dart';
+import 'package:fluxfoot_seller/features/auth/views/widgets/mobile_singup_layout.dart';
+import 'package:fluxfoot_seller/features/auth/views/widgets/web_signup_layout.dart';
 import 'package:provider/provider.dart';
 
 class SignupScreen extends StatelessWidget {

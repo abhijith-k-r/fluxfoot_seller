@@ -1,122 +1,12 @@
-// Separate Widget for Mobile Layout to avoid rebuild issues
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/provider/keyboard_provider.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/provider/signup_provider.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/screens/loging_screenn.dart';
-import 'package:fluxfoot_seller/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxfoot_seller/core/themes/app_theme.dart';
+import 'package:fluxfoot_seller/core/widgets/routs_widgets.dart';
+import 'package:fluxfoot_seller/features/auth/view_model/provider/signup_provider.dart';
+import 'package:fluxfoot_seller/features/auth/views/screens/loging_screenn.dart';
+import 'package:fluxfoot_seller/features/auth/views/widgets/auth_checkbox_row.dart';
+import 'package:fluxfoot_seller/features/auth/views/widgets/custom_textform.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-
-class WebSignUpLayout extends StatelessWidget {
-  const WebSignUpLayout({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    return Row(
-      children: [
-        Expanded(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/logo/logo.png',
-                  width: size.width * 0.1,
-                  height: size.height * 0.1,
-                ),
-                Text(
-                  'FLUXFOOT',
-                  style: GoogleFonts.rozhaOne(fontSize: size.width * 0.02),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Expanded(child: Center(child: SignupForm())),
-      ],
-    );
-  }
-}
-
-//! Separate Widget for Mobile Layout
-class MobileSignUpLayout extends StatelessWidget {
-  const MobileSignUpLayout({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    return Consumer<KeyboardProvider>(
-      builder: (context, keyboardProvider, child) {
-        return SafeArea(
-          child: Column(
-            children: [
-              // Fixed logo section
-              SizedBox(
-                height: keyboardProvider.isKeyboardVisible
-                    ? 60
-                    : size.height * 0.15,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                  child: keyboardProvider.isKeyboardVisible
-                      ? _buildMinimalLogo(size)
-                      : _buildFullLogo(size),
-                ),
-              ),
-
-              // Scrollable form content
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SignupForm(),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFullLogo(Size size) {
-    return SingleChildScrollView(
-      child: Column(
-        key: const ValueKey('signup_full_logo'),
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/logo/logo.png',
-            width: size.width * 0.2,
-            height: size.height * 0.08,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'FLUXFOOT',
-            style: GoogleFonts.rozhaOne(fontSize: size.width * 0.08),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMinimalLogo(Size size) {
-    return Center(
-      key: const ValueKey('signup_minimal_logo'),
-      child: Text(
-        'FLUXFOOT',
-        style: GoogleFonts.rozhaOne(fontSize: size.width * 0.06),
-      ),
-    );
-  }
-}
 
 //! Separate SignUPForm Widget
 class SignupForm extends StatelessWidget {
@@ -147,7 +37,6 @@ class SignupForm extends StatelessWidget {
                           : size.width * 0.03,
                     ),
                   ),
-
                   Text(
                     'Start your journey with us today',
                     style: GoogleFonts.openSans(
@@ -158,7 +47,6 @@ class SignupForm extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 24),
-
                   // !Seller Name Field
                   CustomTextFormField(
                     label: 'Enter Name',
@@ -169,28 +57,10 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.person,
                       size: isMobile ? 24 : 20,
-                      color: Colors.grey.shade400,
+                      color: AppColors.iconGrey,
                     ),
-
-                    validator: (value) {
-                      final trimmedValue = value?.trim();
-
-                      if (trimmedValue == null || trimmedValue.isEmpty) {
-                        return 'Please enter your Name';
-                      }
-                      if (!RegExp(r"^[a-zA-Z\s.-]+$").hasMatch(trimmedValue)) {
-                        return 'Name can only contain letters, spaces, hyphens, or periods.';
-                      }
-                      if (trimmedValue.length < 2) {
-                        return 'Name must be at least 2 characters long.';
-                      }
-
-                      return null;
-                    },
                   ),
-
                   SizedBox(height: 24),
-
                   // !Store Name Field (NEW)
                   CustomTextFormField(
                     label: 'Store Name (Public Facing)',
@@ -201,21 +71,10 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.store,
                       size: isMobile ? 24 : 20,
-                      color: Colors.grey.shade400,
+                      color: AppColors.iconGrey,
                     ),
-                    validator: (value) {
-                      final trimmedValue = value?.trim();
-                      if (trimmedValue == null || trimmedValue.isEmpty) {
-                        return 'Please enter your public Store Name';
-                      }
-                      if (trimmedValue.length < 3) {
-                        return 'Store Name must be at least 3 characters long.';
-                      }
-                      return null;
-                    },
                   ),
                   SizedBox(height: 24),
-
                   // !Business Type Dropdown (NEW)
                   InputDecorator(
                     decoration: InputDecoration(
@@ -224,7 +83,7 @@ class SignupForm extends StatelessWidget {
                       prefixIcon: Icon(
                         Icons.business,
                         size: isMobile ? 24 : 20,
-                        color: Colors.grey.shade400,
+                        color: AppColors.iconGrey,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -254,7 +113,6 @@ class SignupForm extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 24),
-
                   // !Business License Document Upload (NEW FIELD) 📄
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,13 +149,60 @@ class SignupForm extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 8.0, left: 12.0),
                           child: Text(
                             'Please upload your business license',
-                            style: TextStyle(color: Colors.red, fontSize: 12),
+                            style: TextStyle(
+                              color: AppColors.errorRed,
+                              fontSize: 12,
+                            ),
                           ),
+                        ),
+                      if (signupprovider.businessLicenseFile != null ||
+                          signupprovider.licenseFileBytes != null)
+                        Stack(
+                          alignment: AlignmentGeometry.topRight,
+                          children: [
+                            Container(
+                              height: 200,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.bgWiteShade,
+                                ),
+                                image:
+                                    signupprovider.businessLicenseFile != null
+                                    ? DecorationImage(
+                                        image: FileImage(
+                                          signupprovider.businessLicenseFile!,
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : signupprovider.licenseFileBytes != null
+                                    ? DecorationImage(
+                                        image: MemoryImage(
+                                          signupprovider.licenseFileBytes!,
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () =>
+                                  signupprovider.clearBusinessLicense(),
+                              icon: CircleAvatar(
+                                backgroundColor: AppColors.iconGrey,
+                                child: Icon(
+                                  Icons.close,
+                                  color: AppColors.iconWhite,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                     ],
                   ),
                   SizedBox(height: 24),
-
                   // !Email Field
                   CustomTextFormField(
                     label: 'Enter Email',
@@ -308,24 +213,10 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.email,
                       size: isMobile ? 24 : 20,
-                      color: Colors.grey.shade400,
+                      color: AppColors.iconGrey,
                     ),
-
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!RegExp(
-                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                      ).hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
                   ),
-
                   SizedBox(height: 20),
-
                   //! Enter Password
                   CustomTextFormField(
                     label: 'Create Password',
@@ -337,7 +228,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.lock,
                       size: isMobile ? 24 : 20,
-                      color: Colors.grey.shade400,
+                      color: AppColors.iconGrey,
                     ),
                     suffIcon: IconButton(
                       onPressed: signupprovider.isLoading
@@ -349,20 +240,8 @@ class SignupForm extends StatelessWidget {
                             : Icons.visibility_off_rounded,
                       ),
                     ),
-
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
                   ),
-
                   SizedBox(height: 20),
-
                   // !Confirm password
                   CustomTextFormField(
                     label: 'Confirm Password',
@@ -375,7 +254,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.lock,
                       size: isMobile ? 24 : 20,
-                      color: Colors.grey.shade400,
+                      color: AppColors.iconGrey,
                     ),
                     suffIcon: IconButton(
                       onPressed: signupprovider.isLoading
@@ -387,19 +266,21 @@ class SignupForm extends StatelessWidget {
                             : Icons.visibility_off_rounded,
                       ),
                     ),
-                    // onFieldSubmitted: (_) => _handleLogin(),
+                    // Confirm password validator compares with the original password
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return 'Please confirm your password';
                       }
                       if (value.length < 6) {
                         return 'Password must be at least 6 characters';
+                      }
+                      if (value != signupprovider.passwordController.text) {
+                        return 'Passwords do not match';
                       }
                       return null;
                     },
                   ),
                   SizedBox(height: 20),
-
                   //! Phone Number
                   CustomTextFormField(
                     label: 'Phone Number',
@@ -410,20 +291,9 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.phone,
                       size: isMobile ? 24 : 20,
-                      color: Colors.grey.shade400,
+                      color: AppColors.iconGrey,
                     ),
-
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your Phone Number';
-                      }
-                      if (value.length < 10) {
-                        return 'Number must be at least 10 Numbers';
-                      }
-                      return null;
-                    },
                   ),
-
                   SizedBox(height: 20),
                   // !Warehouse Address / Shipping Origin (NEW)
                   CustomTextFormField(
@@ -435,12 +305,19 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.location_on,
                       size: isMobile ? 24 : 20,
-                      color: Colors.grey.shade400,
+                      color: AppColors.iconGrey,
                     ),
                     validator: (value) {
                       final trimmedValue = value?.trim();
                       if (trimmedValue == null || trimmedValue.isEmpty) {
                         return 'Please enter your warehouse location';
+                      }
+                      if (trimmedValue.length < 8) {
+                        return 'Please provide a more detailed address';
+                      }
+                      if (!trimmedValue.contains(',') &&
+                          !trimmedValue.contains('\n')) {
+                        return 'Please include city or postcode (e.g. "Street, City")';
                       }
                       return null;
                     },
@@ -451,7 +328,7 @@ class SignupForm extends StatelessWidget {
                     mainAxis: MainAxisAlignment.center,
                     checkBox: Checkbox(
                       value: signupprovider.rememberMe,
-                      activeColor: Colors.orange,
+                      activeColor: AppColors.activeOrange,
                       onChanged: signupprovider.isLoading
                           ? null
                           : signupprovider.toggleRemember,
@@ -463,14 +340,12 @@ class SignupForm extends StatelessWidget {
                         'Terms and Conditions',
                         style: GoogleFonts.openSans(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: AppColors.textBlack,
                         ),
                       ),
                     ),
                   ),
-
                   SizedBox(height: 32),
-
                   //! signUp Button
                   SizedBox(
                     width: double.infinity,
@@ -480,8 +355,8 @@ class SignupForm extends StatelessWidget {
                           ? null
                           : () => signupprovider.handleSignup(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF4B5EFC),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.buttonPurple,
+                        foregroundColor: AppColors.textWite,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -509,7 +384,7 @@ class SignupForm extends StatelessWidget {
                         'Login',
                         style: GoogleFonts.openSans(
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                          color: AppColors.textBlue,
                         ),
                       ),
                     ),
@@ -524,18 +399,4 @@ class SignupForm extends StatelessWidget {
       },
     );
   }
-}
-
-// ! Fade Push
-
-void fadePush(BuildContext context, Widget page) {
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(opacity: animation, child: child);
-      },
-    ),
-  );
 }
