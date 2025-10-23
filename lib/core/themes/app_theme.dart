@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class AppColors {
+class WebColors {
   static Color textWite = Colors.white;
   static Color textBlack = Colors.black;
   static Color textBlue = Colors.blueAccent;
@@ -13,5 +13,4 @@ class AppColors {
   static Color bgWiteShade = Color(0xFFE0E0E0);
   static Color borderSideGrey = Colors.grey.shade600;
   static Color borderSideOrange = Colors.orangeAccent;
-  
 }

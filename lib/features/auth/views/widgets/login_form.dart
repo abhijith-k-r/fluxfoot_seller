@@ -53,7 +53,7 @@ class LoginForm extends StatelessWidget {
                   prefIcon: Icon(
                     Icons.email,
                     size: isMobile ? 24 : 20,
-                    color: AppColors.iconGrey,
+                    color: WebColors.iconGrey,
                   ),
                   onFieldSubmitted: (_) {
                     FocusScope.of(
@@ -74,7 +74,7 @@ class LoginForm extends StatelessWidget {
                   prefIcon: Icon(
                     Icons.lock,
                     size: isMobile ? 24 : 20,
-                    color: AppColors.iconGrey,
+                    color: WebColors.iconGrey,
                   ),
                   suffIcon: IconButton(
                     onPressed: loginprovider.isLoading
@@ -94,7 +94,7 @@ class LoginForm extends StatelessWidget {
                   mainAxis: MainAxisAlignment.spaceBetween,
                   checkBox: Checkbox(
                     value: loginprovider.rememberMe,
-                    activeColor: AppColors.activeOrange,
+                    activeColor: WebColors.activeOrange,
                     onChanged: loginprovider.isLoading
                         ? null
                         : loginprovider.toggleRememberMe,
@@ -108,7 +108,7 @@ class LoginForm extends StatelessWidget {
                       'Forgot password?',
                       style: GoogleFonts.openSans(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textBlack,
+                        color: WebColors.textBlack,
                       ),
                     ),
                   ),
@@ -123,8 +123,8 @@ class LoginForm extends StatelessWidget {
                         ? null
                         : () => loginprovider.handleLoging(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.buttonPurple,
-                      foregroundColor: AppColors.textWite,
+                      backgroundColor: WebColors.buttonPurple,
+                      foregroundColor: WebColors.textWite,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -152,7 +152,7 @@ class LoginForm extends StatelessWidget {
                       'Sign up here',
                       style: GoogleFonts.openSans(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textBlue,
+                        color: WebColors.textBlue,
                       ),
                     ),
                   ),

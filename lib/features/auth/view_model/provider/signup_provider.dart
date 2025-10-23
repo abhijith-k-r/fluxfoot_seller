@@ -103,7 +103,7 @@ class SignupProvider extends ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('you cancelled upload proof'),
-          backgroundColor: AppColors.errorRed,
+          backgroundColor: WebColors.errorRed,
         ),
       );
     }
@@ -190,7 +190,7 @@ class SignupProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Passwords do not match'),
-            backgroundColor: AppColors.errorRed,
+            backgroundColor: WebColors.errorRed,
           ),
         );
         return;
@@ -201,7 +201,7 @@ class SignupProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Please upload your business license'),
-            backgroundColor: AppColors.errorRed,
+            backgroundColor: WebColors.errorRed,
           ),
         );
         return;
@@ -241,7 +241,7 @@ class SignupProvider extends ChangeNotifier {
           showOverlaySnackbar(
             context,
             'Sign-up successful!💫',
-            AppColors.succesGreen,
+            WebColors.succesGreen,
           );
           // Navigate to login screen
           Navigator.pushReplacement(
@@ -255,7 +255,7 @@ class SignupProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Sign-up failed: ${e.message}'),
-            backgroundColor: AppColors.errorRed,
+            backgroundColor: WebColors.errorRed,
           ),
         );
       } catch (e) {
@@ -264,7 +264,7 @@ class SignupProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Sign-up failed: ${e.toString()}'),
-            backgroundColor: AppColors.errorRed,
+            backgroundColor: WebColors.errorRed,
           ),
         );
       } finally {

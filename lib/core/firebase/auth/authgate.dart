@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/features/admin/presentation/screens/admin_waiting_banner_screen.dart';
 import 'package:fluxfoot_seller/features/auth/views/screens/loging_screenn.dart';
-import 'package:fluxfoot_seller/features/dashboard/presentation/screens/blocked_screen.dart';
-import 'package:fluxfoot_seller/features/dashboard/presentation/screens/dashboard.dart';
+import 'package:fluxfoot_seller/features/admin/presentation/screens/blocked_screen.dart';
+import 'package:fluxfoot_seller/features/sidemenu/views/screen/side_menu_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -54,7 +54,7 @@ class AuthGate extends StatelessWidget {
               }
 
               if (status == 'active' || status == 'approved') {
-                return Dashboard(); 
+                return SideMenuScreen();
               }
 
               // Handle blocked/rejected state

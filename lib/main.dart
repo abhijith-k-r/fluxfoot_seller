@@ -2,9 +2,11 @@ import 'dart:developer';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/core/firebase/auth/authgate.dart';
 import 'package:fluxfoot_seller/features/auth/view_model/provider/keyboard_provider.dart';
-import 'package:fluxfoot_seller/features/dashboard/presentation/provider/drop_down_btn_provider.dart';
+import 'package:fluxfoot_seller/features/auth/views/screens/splash_screen.dart';
+import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
+import 'package:fluxfoot_seller/features/sidemenu/view_model/provider/drop_down_btn_provider.dart';
+import 'package:fluxfoot_seller/features/sidemenu/view_model/provider/side_menu_provider.dart';
 import 'package:fluxfoot_seller/firebase_options.dart';
 import 'package:provider/provider.dart';
 
@@ -30,15 +32,21 @@ class MYApp extends StatelessWidget {
         ChangeNotifierProvider<KeyboardProvider>(
           create: (context) => KeyboardProvider(),
         ),
+        ChangeNotifierProvider<SideMenuProvider>(
+          create: (context) => SideMenuProvider(),
+        ),
         ChangeNotifierProvider<DropDownButtonProvider>(
           create: (context) => DropDownButtonProvider(),
+        ),
+        ChangeNotifierProvider<ProductProvider>(
+          create: (context) => ProductProvider(),
         ),
       ],
 
       child: MaterialApp(
         title: 'FluxFoot_Seller',
         debugShowCheckedModeBanner: false,
-        home: AuthGate(),
+        home: SplashScreen(),
       ),
     );
   }

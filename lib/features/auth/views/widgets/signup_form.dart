@@ -57,7 +57,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.person,
                       size: isMobile ? 24 : 20,
-                      color: AppColors.iconGrey,
+                      color: WebColors.iconGrey,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -71,7 +71,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.store,
                       size: isMobile ? 24 : 20,
-                      color: AppColors.iconGrey,
+                      color: WebColors.iconGrey,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -83,7 +83,7 @@ class SignupForm extends StatelessWidget {
                       prefixIcon: Icon(
                         Icons.business,
                         size: isMobile ? 24 : 20,
-                        color: AppColors.iconGrey,
+                        color: WebColors.iconGrey,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -150,7 +150,7 @@ class SignupForm extends StatelessWidget {
                           child: Text(
                             'Please upload your business license',
                             style: TextStyle(
-                              color: AppColors.errorRed,
+                              color: WebColors.errorRed,
                               fontSize: 12,
                             ),
                           ),
@@ -166,7 +166,7 @@ class SignupForm extends StatelessWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: AppColors.bgWiteShade,
+                                  color: WebColors.bgWiteShade,
                                 ),
                                 image:
                                     signupprovider.businessLicenseFile != null
@@ -190,10 +190,10 @@ class SignupForm extends StatelessWidget {
                               onPressed: () =>
                                   signupprovider.clearBusinessLicense(),
                               icon: CircleAvatar(
-                                backgroundColor: AppColors.iconGrey,
+                                backgroundColor: WebColors.iconGrey,
                                 child: Icon(
                                   Icons.close,
-                                  color: AppColors.iconWhite,
+                                  color: WebColors.iconWhite,
                                   size: 20,
                                 ),
                               ),
@@ -213,7 +213,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.email,
                       size: isMobile ? 24 : 20,
-                      color: AppColors.iconGrey,
+                      color: WebColors.iconGrey,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -228,7 +228,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.lock,
                       size: isMobile ? 24 : 20,
-                      color: AppColors.iconGrey,
+                      color: WebColors.iconGrey,
                     ),
                     suffIcon: IconButton(
                       onPressed: signupprovider.isLoading
@@ -254,7 +254,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.lock,
                       size: isMobile ? 24 : 20,
-                      color: AppColors.iconGrey,
+                      color: WebColors.iconGrey,
                     ),
                     suffIcon: IconButton(
                       onPressed: signupprovider.isLoading
@@ -291,7 +291,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.phone,
                       size: isMobile ? 24 : 20,
-                      color: AppColors.iconGrey,
+                      color: WebColors.iconGrey,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -305,7 +305,7 @@ class SignupForm extends StatelessWidget {
                     prefIcon: Icon(
                       Icons.location_on,
                       size: isMobile ? 24 : 20,
-                      color: AppColors.iconGrey,
+                      color: WebColors.iconGrey,
                     ),
                     validator: (value) {
                       final trimmedValue = value?.trim();
@@ -328,7 +328,7 @@ class SignupForm extends StatelessWidget {
                     mainAxis: MainAxisAlignment.center,
                     checkBox: Checkbox(
                       value: signupprovider.rememberMe,
-                      activeColor: AppColors.activeOrange,
+                      activeColor: WebColors.activeOrange,
                       onChanged: signupprovider.isLoading
                           ? null
                           : signupprovider.toggleRemember,
@@ -340,7 +340,7 @@ class SignupForm extends StatelessWidget {
                         'Terms and Conditions',
                         style: GoogleFonts.openSans(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textBlack,
+                          color: WebColors.textBlack,
                         ),
                       ),
                     ),
@@ -355,8 +355,8 @@ class SignupForm extends StatelessWidget {
                           ? null
                           : () => signupprovider.handleSignup(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.buttonPurple,
-                        foregroundColor: AppColors.textWite,
+                        backgroundColor: WebColors.buttonPurple,
+                        foregroundColor: WebColors.textWite,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -384,7 +384,7 @@ class SignupForm extends StatelessWidget {
                         'Login',
                         style: GoogleFonts.openSans(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textBlue,
+                          color: WebColors.textBlue,
                         ),
                       ),
                     ),

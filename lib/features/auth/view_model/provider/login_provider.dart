@@ -66,9 +66,9 @@ class LoginProvider extends ChangeNotifier {
           password: password,
         );
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
+          SnackBar(
             content: Text('Login successful!'),
-            backgroundColor: AppColors.succesGreen,
+            backgroundColor: WebColors.succesGreen,
           ),
         );
 
@@ -83,7 +83,7 @@ class LoginProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Login failed1: ${e.message}'),
-            backgroundColor: AppColors.errorRed,
+            backgroundColor: WebColors.errorRed,
           ),
         );
       } catch (e) {
@@ -92,7 +92,7 @@ class LoginProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Login failed2: ${e.toString()}'),
-            backgroundColor: AppColors.errorRed,
+            backgroundColor: WebColors.errorRed,
           ),
         );
       } finally {
@@ -133,7 +133,7 @@ class LoginProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Password reset email sent!'),
-            backgroundColor: AppColors.succesGreen,
+            backgroundColor: WebColors.succesGreen,
           ),
         );
       } on FirebaseAuthException catch (e) {
@@ -141,7 +141,7 @@ class LoginProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.message}'),
-            backgroundColor: AppColors.errorRed,
+            backgroundColor: WebColors.errorRed,
           ),
         );
       } finally {

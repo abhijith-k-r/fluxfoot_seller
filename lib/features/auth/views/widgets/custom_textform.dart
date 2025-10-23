@@ -86,35 +86,35 @@ class CustomTextFormField extends StatelessWidget with Validator {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.openSans(
-              color: AppColors.iconGrey,
+              color: WebColors.iconGrey,
               fontSize: isMobile ? 16 : 14,
             ),
             prefixIcon: prefIcon,
             suffixIcon: suffIcon,
-            fillColor: AppColors.bgWiteShade,
+            fillColor: WebColors.bgWiteShade,
             filled: true,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.borderSideGrey),
+              borderSide: BorderSide(color: WebColors.borderSideGrey),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.borderSideGrey),
+              borderSide: BorderSide(color: WebColors.borderSideGrey),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: AppColors.borderSideOrange,
+                color: WebColors.borderSideOrange,
                 width: 2,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.errorRed),
+              borderSide: BorderSide(color: WebColors.errorRed),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.errorRed, width: 2),
+              borderSide: BorderSide(color: WebColors.errorRed, width: 2),
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),

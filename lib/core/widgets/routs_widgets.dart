@@ -72,12 +72,12 @@ void showOverlaySnackbar(BuildContext context, String message, Color color) {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, color: AppColors.iconWhite, size: 16),
+                Icon(Icons.check_circle, color: WebColors.iconWhite, size: 16),
                 SizedBox(width: 10),
-                Text(message, style: TextStyle(color: AppColors.textWite)),
+                Text(message, style: TextStyle(color: WebColors.textWite)),
                 SizedBox(width: 30),
                 IconButton(
-                  icon: Icon(Icons.close, color: AppColors.iconWhite, size: 15),
+                  icon: Icon(Icons.close, color: WebColors.iconWhite, size: 15),
                   onPressed: () {
                     overlayEntry.remove();
                   },

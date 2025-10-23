@@ -70,7 +70,7 @@ class MobileLoginLayout extends StatelessWidget {
                               fontSize: keyboardprovider.isKeyboardVisible
                                   ? size.width * 0.06
                                   : size.width * 0.08,
-                              color: AppColors.textBlack,
+                              color: WebColors.textBlack,
                             ),
                             child: Text('FLUXFOOT'),
                           ),
@@ -92,7 +92,3 @@ class MobileLoginLayout extends StatelessWidget {
     );
   }
 }
-
-
-
-
