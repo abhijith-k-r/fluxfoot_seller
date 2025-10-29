@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/firebase/services/product_firebase_services.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
@@ -27,8 +28,7 @@ Container productsContents(
           width: size * 0.15,
           child: Center(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: size * 0.01,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   width: size * 0.02,
@@ -37,17 +37,17 @@ Container productsContents(
                     borderRadius: BorderRadius.circular(5),
                     border: BoxBorder.all(color: WebColors.borderSideOrange),
                   ),
-                  child: product.imageUrl == null
+                  child: (product.images.isEmpty || product.images[0].isEmpty)
                       ? Icon(Icons.upload_file)
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.network(
-                            product.imageUrl!,
+                            product.images[0],
                             fit: BoxFit.cover,
                           ),
                         ),
                 ),
-                customText(15, product.name),
+                customText(15, product.name, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),

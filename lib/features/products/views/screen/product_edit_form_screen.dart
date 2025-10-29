@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_back_button.dart';
@@ -5,7 +7,6 @@ import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
 import 'package:fluxfoot_seller/core/widgets/routs_widgets.dart';
 import 'package:fluxfoot_seller/features/products/model/product_model.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
-import 'package:fluxfoot_seller/features/products/views/widgets/addedit_product_image.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/form_elements.dart';
 import 'package:provider/provider.dart';
 
@@ -32,11 +33,11 @@ class ProductEditFormScreen extends StatelessWidget {
     final colorsController = TextEditingController(text: product.color);
     final quantityController = TextEditingController(text: product.quantity);
 
-    Future.microtask(() {
-      productProvider.setInitialLogoUrl(product.imageUrl);
+    // Future.microtask(() {
+    //   productProvider.setInitialLogoUrl(product.images);
 
-      productProvider.initializeForEdit(product);
-    });
+    //   productProvider.initializeForEdit(product);
+    // });
     return Dialog(
       child: Container(
         width: size * 0.7,
@@ -52,7 +53,7 @@ class ProductEditFormScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // ! Selecting Product Image Helper Function
-                buildAddEditProductImage(size),
+                // buildAddEditProductImage(size),
                 SizedBox(height: size * 0.01),
                 // ! Two Column Layout Product adding
                 Expanded(
@@ -231,6 +232,7 @@ void updateProductSubmit(
   await productProvider.updateExistingProduct(
     id: originalProduct.id,
     name: nameController.text,
+    images: productProvider.allImageUrls,
     description: descriptionController.text.isEmpty
         ? null
         : descriptionController.text,
@@ -240,7 +242,6 @@ void updateProductSubmit(
     category: categoryName!,
     color: colorsController.text.isEmpty ? null : colorsController.text,
     brand: brandName!,
-    logoUrl: productProvider.selectedLogoUrl,
   );
 
   showOverlaySnackbar(

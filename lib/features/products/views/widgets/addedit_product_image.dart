@@ -2,56 +2,63 @@
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
-import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
-import 'package:provider/provider.dart';
 
-Widget buildAddEditProductImage(double size) {
-  return Consumer<ProductProvider>(
-    builder: (context, productProvider, child) {
-      return Stack(
-        alignment: AlignmentGeometry.topRight,
-        children: [
-          GestureDetector(
-            onTap: () => productProvider.pickAndUploadLogo(),
-            child: Container(
-              width: size * 0.2,
-              height: size * 0.1,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: BoxBorder.all(color: WebColors.borderSideGrey),
-              ),
-              child: productProvider.selectedLogoUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        productProvider.selectedLogoUrl!,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.upload_file),
-                        customText(
-                          15,
-                          productProvider.selectedLogoUrl != null
-                              ? ' Logo Selected'
-                              : 'Upload Logo',
-                        ),
-                      ],
-                    ),
-            ),
+Widget buildAddEditProductImage({
+  required double size,
+  required List<String> imageUrls,
+  required String title,
+  required VoidCallback onAddTap,
+  required void Function(int) onRemove,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      customText(14, title, fontWeight: FontWeight.bold),
+      SizedBox(height: 8),
+      SizedBox(
+        height: size * 0.2,
+        child: GridView.builder(
+          itemCount: imageUrls.length + 1,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 2.99 / 2,
           ),
-          IconButton(
-            onPressed: () => productProvider.clearSelectedLogoUrl(),
-            icon: CircleAvatar(
-              radius: 10,
-              backgroundColor: WebColors.iconGrey,
-              child: Icon(Icons.close, color: WebColors.iconWhite, size: 15),
-            ),
-          ),
-        ],
-      );
-    },
+          itemBuilder: (context, index) {
+            if (index == imageUrls.length) {
+              return GestureDetector(
+                onTap: onAddTap,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: WebColors.borderSideGrey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.add_a_photo),
+                ),
+              );
+            }
+            // Otherwise, it's an existing image
+            final url = imageUrls[index];
+            return Stack(
+              alignment: Alignment.topRight,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(child: Image.network(url, fit: BoxFit.cover)),
+                ),
+                // Remove button for the image
+                IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () => onRemove(index),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    ],
   );
 }

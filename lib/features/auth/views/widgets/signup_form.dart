@@ -141,9 +141,7 @@ class SignupForm extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (signupprovider.signupFormkey.currentState
-                                  ?.validate() ==
-                              false &&
+                      if (signupprovider.didAttemptSubmit &&
                           signupprovider.businessLicenseFileName.isEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0, left: 12.0),

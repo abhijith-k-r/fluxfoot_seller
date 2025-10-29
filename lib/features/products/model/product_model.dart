@@ -10,7 +10,7 @@ class ProductModel {
   final String? color;
   final String category;
   final String brand;
-  final String? imageUrl;
+  final List<String> images;
   final String status;
   final String sellerId;
   final DateTime createdAt;
@@ -25,7 +25,7 @@ class ProductModel {
     this.color,
     required this.category,
     required this.brand,
-    this.imageUrl,
+    required this.images,
     required this.status,
     required this.sellerId,
     required this.createdAt,
@@ -33,6 +33,18 @@ class ProductModel {
   });
 
   factory ProductModel.fromFirestore(Map<String, dynamic> data, String id) {
+    var imagesData = data['images'];
+    List<String> imagesList;
+
+    if (imagesData == null) {
+      imagesList = [];
+    } else if (imagesData is String) {
+      imagesList = [imagesData]; 
+    } else if (imagesData is Iterable) {
+      imagesList = List<String>.from(imagesData);
+    } else {
+      imagesList = [];
+    }
     return ProductModel(
       id: id,
       name: data['name'] ?? '',
@@ -43,7 +55,7 @@ class ProductModel {
       color: data['color'] ?? '',
       category: data['category'] ?? '',
       brand: data['brand'] ?? '',
-      imageUrl: data['imageUrl'] ?? '',
+      images: imagesList,
       status: data['status'] ?? '',
       sellerId: data['sellerId'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
@@ -60,7 +72,7 @@ class ProductModel {
       'category': category,
       'color': color,
       'brand': brand,
-      'imageUrl': imageUrl,
+      'images': images,
       'status': status,
       'sellerId': sellerId,
       'createdAt': createdAt,

@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_nullable_for_final_variable_declarations
+
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +32,9 @@ class ProductProvider extends ChangeNotifier {
 
   final ImagePicker _picker = ImagePicker();
   String _searchTerm = '';
-  String? _logoUrl;
+  // String? _logoUrl;
+  List<String> _normalImageUrls = [];
+  List<String> _threeDImageUrls = [];
   final String _isActive = '';
   final cloudinary = CloudinaryPublic('dryij9oei', 'sr_default', cache: false);
 
@@ -52,7 +56,11 @@ class ProductProvider extends ChangeNotifier {
   TextEditingController get colorsController => _colorsController;
   TextEditingController get quantityController => _quantityController;
   TextEditingController get searchController => _searchController;
-  String? get selectedLogoUrl => _logoUrl;
+  // String? get selectedLogoUrl => _logoUrl;
+  List<String> get normalImageUrls => _normalImageUrls;
+  List<String> get threeDImageUrls => _threeDImageUrls;
+  // Get ALL image URLs combined for submission to Firestore
+  List<String> get allImageUrls => [..._normalImageUrls, ..._threeDImageUrls];
   String get isActive => _isActive;
 
   //! --- SETTERS (MUST CALL notifyListeners) ---
@@ -143,49 +151,52 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  // ! SET INITIAL LOGO URL
-  void setInitialLogoUrl(String? url) {
-    if (_logoUrl != url) {
-      _logoUrl = url;
-      notifyListeners();
-    }
-  }
+  // // ! SET INITIAL LOGO URL
+  // void setInitialLogoUrl(String? url) {
+  //   if (_logoUrl != url) {
+  //     _logoUrl = url;
+  //     notifyListeners();
+  //   }
+  // }
 
   // ! To Pick and Upload image
-  Future<void> pickAndUploadLogo() async {
+  Future<void> pickAndUploadImages() async {
     if (_isLoading) return;
 
-    final XFile? imageFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
-
-    if (imageFile == null) return;
+    final List<XFile>? pickedFiles = await _picker.pickMultiImage();
+    if (pickedFiles == null || pickedFiles.isEmpty) return;
 
     _isLoading = true;
     notifyListeners();
 
-    try {
-      CloudinaryResponse response = await cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
-          imageFile.path,
-          resourceType: CloudinaryResourceType.Image,
-        ),
-      );
+    for (var imgFile in pickedFiles) {
+      try {
+        CloudinaryResponse response = await cloudinary.uploadFile(
+          CloudinaryFile.fromFile(
+            imgFile.path,
+            resourceType: CloudinaryResourceType.Image,
+          ),
+        );
 
-      _logoUrl = response.secureUrl;
-      debugPrint('Cloudinary URL: $_logoUrl');
-    } catch (e) {
-      debugPrint('Error uploading to Cloudinary: $e');
-      _logoUrl = null;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+        _normalImageUrls.add(response.secureUrl);
+      } catch (e) {
+        debugPrint('Error uploading image: $e');
+      }
     }
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // ! Remove Images At Index
+  void removeImageAt(int index) {
+    _normalImageUrls.removeAt(index);
+    notifyListeners();
   }
 
   // ! Clear Selected Logo Url
-  void clearSelectedLogoUrl() {
-    _logoUrl = null;
+  void clearSelectedImages() {
+    _normalImageUrls.clear();
+    _threeDImageUrls.clear();
     notifyListeners();
   }
 
@@ -211,8 +222,8 @@ class ProductProvider extends ChangeNotifier {
 
   // ! Add PRODUCT
   Future<void> addProduct({
+    required List<String> images,
     required String name,
-    String? logoUrl,
     String? description,
     required String regularPrice,
     required String salePrice,
@@ -250,7 +261,7 @@ class ProductProvider extends ChangeNotifier {
         category: category,
         color: color,
         brand: brand,
-        imageUrl: logoUrl,
+        images: images,
         status: 'active',
         sellerId: sellerId,
         createdAt: DateTime.now(),
@@ -261,7 +272,7 @@ class ProductProvider extends ChangeNotifier {
       debugPrint('Error from viewModel: $e');
     } finally {
       _isLoading = false;
-      clearSelectedLogoUrl();
+      clearSelectedImages();
       notifyListeners();
     }
   }
@@ -270,7 +281,9 @@ class ProductProvider extends ChangeNotifier {
   Future<void> initializeForEdit(ProductModel product) async {
     _selectedBrandId = null;
     _selectedCategoryId = null;
-    _logoUrl = product.imageUrl;
+    // _logoUrl = product.images;
+    _normalImageUrls.clear();
+    _threeDImageUrls.clear();
     _searchTerm = '';
 
     final brands = await _brandsFuture;
@@ -295,6 +308,8 @@ class ProductProvider extends ChangeNotifier {
       _selectedCategoryName = currentCategory.name;
     }
 
+    _normalImageUrls = product.images;
+
     notifyListeners();
   }
 
@@ -302,7 +317,7 @@ class ProductProvider extends ChangeNotifier {
   Future<void> updateExistingProduct({
     required String id,
     required String name,
-    String? logoUrl,
+    required List<String> images,
     String? description,
     required String regularPrice,
     required String salePrice,
@@ -336,7 +351,7 @@ class ProductProvider extends ChangeNotifier {
         category: category,
         color: color,
         brand: brand,
-        imageUrl: logoUrl,
+        images: images,
         status: 'active',
         sellerId: sellerId,
         createdAt: DateTime.now(),
@@ -347,7 +362,7 @@ class ProductProvider extends ChangeNotifier {
       debugPrint('Error updating Product from ViewModel: $e');
     } finally {
       _isLoading = false;
-      clearSelectedLogoUrl();
+      clearSelectedImages();
       notifyListeners();
     }
   }
@@ -373,6 +388,18 @@ class ProductProvider extends ChangeNotifier {
     _selectedBrandName = null;
     _selectedCategoryName = null;
     notifyListeners();
+  }
+
+  void clearAllFields() {
+    _nameController.clear();
+    _descriptionController.clear();
+    _regPriceController.clear();
+    _salePriceController.clear();
+    _quantityController.clear();
+    _colorsController.clear();
+
+    clearSelectedImages();
+    clearSelections();
   }
 
   @override

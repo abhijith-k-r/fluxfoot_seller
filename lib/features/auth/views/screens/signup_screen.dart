@@ -13,7 +13,7 @@ class SignupScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => SignupProvider(),
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: true,                  
         body: LayoutBuilder(
           builder: (context, constraints) {
             bool isMobile = constraints.maxWidth < 768;

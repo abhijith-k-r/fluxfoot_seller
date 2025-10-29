@@ -31,6 +31,7 @@ class SignupProvider extends ChangeNotifier {
   String _businessLicenseFileName = '';
   File? _businessLicenseFile;
   Uint8List? _licenseFileBytes;
+  bool _didAttemptSubmit = false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -59,6 +60,7 @@ class SignupProvider extends ChangeNotifier {
   String get businessLicenseFileName => _businessLicenseFileName;
   File? get businessLicenseFile => _businessLicenseFile;
   Uint8List? get licenseFileBytes => _licenseFileBytes;
+  bool get didAttemptSubmit => _didAttemptSubmit;
 
   bool get isEnterPasswordVisible => _isEnterPasswordVisible;
   bool get isCreatePasswordVisible => _isCreatePasswordVisible;
@@ -183,7 +185,15 @@ class SignupProvider extends ChangeNotifier {
     return ressponse.secureUrl;
   }
 
+  void setDidAttemptSubmit(bool value) {
+
+    _didAttemptSubmit = value;
+    notifyListeners();
+  }
+
   Future<void> handleSignup(BuildContext context) async {
+    setDidAttemptSubmit(true);
+    
     if (_signupFormkey.currentState!.validate()) {
       if (_passwordController.text != _confirmPassController.text) {
         setError('Passwords do not match');

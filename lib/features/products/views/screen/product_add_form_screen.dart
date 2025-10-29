@@ -31,22 +31,61 @@ class ProductAddFormScreen extends StatelessWidget {
           children: [
             // ! Custom Back BUTTON
             customBackButton(context),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // ! Selecting Product Image Helper Function
-                buildAddEditProductImage(size),
-                SizedBox(height: size * 0.01),
-                // ! Two Column Layout Product adding
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // !LEFT COLUMN FORM FIELD
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: SingleChildScrollView(
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // ! Selecting Product Image Helper Function
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Consumer<ProductProvider>(
+                            builder: (context, provider, child) =>
+                                buildAddEditProductImage(
+                                  size: size,
+                                  imageUrls: provider.normalImageUrls,
+                                  title: 'PNG IMAGES',
+                                  onAddTap: () =>
+                                      provider.pickAndUploadImages(),
+                                  onRemove: (index) =>
+                                      provider.removeImageAt(index),
+                                ),
+                          ),
+                        ),
+
+                        SizedBox(width: 20),
+                        //! **3D IMAGES (Right)**
+                        Expanded(
+                          child: Container(),
+                          // child: Consumer<ProductProvider>(
+                          //   builder: (context, provider, child) =>
+                          //       buildAddEditProductImage(
+                          //         size: size,
+                          //         title: '3D Images',
+                          //         // Assuming you add these lists/methods to ProductProvider
+                          //         imageUrls: provider.imageUrls,
+                          //         onAddTap: () =>
+                          //             provider.pickAndUploadImages(),
+                          //         onRemove: (index) =>
+                          //             provider.removeImageAt(index),
+                          //       ),
+                          // ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: size * 0.01),
+                    // ! Two Column Layout Product adding
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // !LEFT COLUMN FORM FIELD
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -78,13 +117,11 @@ class ProductAddFormScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
 
-                      //! RIGHT COLUMN FORM FIELD
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: SingleChildScrollView(
+                        //! RIGHT COLUMN FORM FIELD
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 10),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -136,39 +173,40 @@ class ProductAddFormScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      ],
+                    ),
 
-                SizedBox(height: 20),
+                    SizedBox(height: 20),
 
-                // !Add Product Button
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      addProductSubmit(context, productProvider);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: WebColors.buttonPurple,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    // !Add Product Button
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          addProductSubmit(context, productProvider);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: WebColors.buttonPurple,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: customText(
+                          16,
+                          'Add Product',
+                          webcolors: WebColors.textWite,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    child: customText(
-                      16,
-                      'Add Product',
-                      webcolors: WebColors.textWite,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                    SizedBox(height: 20),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -223,7 +261,7 @@ void addProductSubmit(
   }
 
   await productProvider.addProduct(
-    logoUrl: productProvider.selectedLogoUrl,
+    images: productProvider.normalImageUrls,
     name: productProvider.nameController.text,
     description: productProvider.descriptionController.text,
     regularPrice: productProvider.regPriceController.text,
