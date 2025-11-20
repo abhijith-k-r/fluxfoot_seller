@@ -10,8 +10,10 @@ Widget buildTextField(
   BuildContext context,
   String label,
   String hint,
-  TextEditingController? controller,
-) {
+  TextEditingController? controller, {
+  TextInputType? keyboardType,
+  void Function(dynamic value)? onChanged,
+}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 16.0),
     child: Column(

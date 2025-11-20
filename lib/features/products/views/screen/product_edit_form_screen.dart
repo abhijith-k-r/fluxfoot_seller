@@ -30,7 +30,7 @@ class ProductEditFormScreen extends StatelessWidget {
       text: product.regularPrice,
     );
     final salePriceController = TextEditingController(text: product.salePrice);
-    final colorsController = TextEditingController(text: product.color);
+    // final colorsController = TextEditingController(text: product.color);
     final quantityController = TextEditingController(text: product.quantity);
 
     // Future.microtask(() {
@@ -122,12 +122,12 @@ class ProductEditFormScreen extends StatelessWidget {
                                   },
                                 ),
                                 // !! Color Text Form Field
-                                buildTextField(
-                                  context,
-                                  'Colors',
-                                  'eg: Red',
-                                  colorsController,
-                                ),
+                                // buildTextField(
+                                //   context,
+                                //   'Colors',
+                                //   'eg: Red',
+                                //   // colorsController,
+                                // ),
                                 // ! C A T E G O R I E S \\ DROP DOWN
                                 Consumer<ProductProvider>(
                                   builder: (context, value, child) {
@@ -167,17 +167,17 @@ class ProductEditFormScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       // !addProductSubmit(context, productProvider);
-                      updateProductSubmit(
-                        context,
-                        productProvider,
-                        product,
-                        nameController,
-                        descriptionController,
-                        regPriceController,
-                        salePriceController,
-                        colorsController,
-                        quantityController,
-                      );
+                      // updateProductSubmit(
+                      //   context,
+                      //   productProvider,
+                      //   product,
+                      //   nameController,
+                      //   descriptionController,
+                      //   regPriceController,
+                      //   salePriceController,
+                      //   colorsController,
+                      //   quantityController,
+                      // );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: WebColors.buttonPurple,

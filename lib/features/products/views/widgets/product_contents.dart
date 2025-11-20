@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/firebase/services/product_firebase_services.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
+import 'package:fluxfoot_seller/features/products/model/colorvariant_model.dart';
 import 'package:fluxfoot_seller/features/products/model/product_model.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/dropdown_menu_items.dart';
@@ -13,7 +13,21 @@ Container productsContents(
   ProductModel product,
   ProductFirebaseServices productService,
   ProductProvider productProvider,
+  ColorvariantModel productVariants,
 ) {
+  String? firstVariantImage;
+  if ((product.variants.isNotEmpty)) {
+    for (final v in product.variants) {
+      if (v.imageUrls.isNotEmpty) {
+        firstVariantImage = v.imageUrls.first;
+        break;
+      }
+    }
+  }
+
+  final imageUrl =
+      firstVariantImage ??
+      (product.images.isNotEmpty ? product.images.first : null);
   return Container(
     width: double.infinity,
     height: 40,
@@ -37,14 +51,11 @@ Container productsContents(
                     borderRadius: BorderRadius.circular(5),
                     border: BoxBorder.all(color: WebColors.borderSideOrange),
                   ),
-                  child: (product.images.isEmpty || product.images[0].isEmpty)
+                  child: (imageUrl == null || imageUrl.isEmpty)
                       ? Icon(Icons.upload_file)
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.network(
-                            product.images[0],
-                            fit: BoxFit.cover,
-                          ),
+                          child: Image.network(imageUrl, fit: BoxFit.cover),
                         ),
                 ),
                 customText(15, product.name, overflow: TextOverflow.ellipsis),

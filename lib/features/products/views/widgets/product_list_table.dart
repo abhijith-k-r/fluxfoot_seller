@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/firebase/services/product_firebase_services.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
+import 'package:fluxfoot_seller/features/products/model/colorvariant_model.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/product_contents.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/product_title_contents.dart';
@@ -17,6 +18,7 @@ class ProductListTable extends StatelessWidget {
     final size = MediaQuery.of(context).size.width;
     final productProvider = Provider.of<ProductProvider>(context);
     final productService = ProductFirebaseServices();
+    final productVariants = ColorvariantModel(colorName: '');
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -66,6 +68,7 @@ class ProductListTable extends StatelessWidget {
                         product,
                         productService,
                         productProvider,
+                        productVariants,
                       );
                     },
                   );

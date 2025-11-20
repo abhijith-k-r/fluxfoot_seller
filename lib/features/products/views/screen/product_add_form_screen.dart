@@ -6,8 +6,9 @@ import 'package:fluxfoot_seller/core/widgets/custom_back_button.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
 import 'package:fluxfoot_seller/core/widgets/routs_widgets.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
-import 'package:fluxfoot_seller/features/products/views/widgets/addedit_product_image.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/form_elements.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/product_dynamicfield_section.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/product_variant_section.dart';
 import 'package:provider/provider.dart';
 
 class ProductAddFormScreen extends StatelessWidget {
@@ -20,64 +21,39 @@ class ProductAddFormScreen extends StatelessWidget {
       context,
       listen: false,
     );
+
     return Dialog(
       child: Container(
         width: size * 0.7,
         height: size * 0.7,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
         padding: EdgeInsets.all(20),
-        child: Stack(
-          alignment: Alignment.topRight,
+        child: Column(
           children: [
-            // ! Custom Back BUTTON
-            customBackButton(context),
             Padding(
-              padding: const EdgeInsets.only(top: 20.0),
+              padding: EdgeInsets.only(
+                left: size * 0.01,
+                right: size * 0.01,
+                bottom: size * 0.01,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  customText(
+                    18,
+                    'Create New Product',
+                    fontWeight: FontWeight.bold,
+                    webcolors: WebColors.textBlack,
+                  ),
+                  customBackButton(context),
+                ],
+              ),
+            ),
+            //  ! New Thing Vannu In My MInd
+            Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // ! Selecting Product Image Helper Function
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Consumer<ProductProvider>(
-                            builder: (context, provider, child) =>
-                                buildAddEditProductImage(
-                                  size: size,
-                                  imageUrls: provider.normalImageUrls,
-                                  title: 'PNG IMAGES',
-                                  onAddTap: () =>
-                                      provider.pickAndUploadImages(),
-                                  onRemove: (index) =>
-                                      provider.removeImageAt(index),
-                                ),
-                          ),
-                        ),
-
-                        SizedBox(width: 20),
-                        //! **3D IMAGES (Right)**
-                        Expanded(
-                          child: Container(),
-                          // child: Consumer<ProductProvider>(
-                          //   builder: (context, provider, child) =>
-                          //       buildAddEditProductImage(
-                          //         size: size,
-                          //         title: '3D Images',
-                          //         // Assuming you add these lists/methods to ProductProvider
-                          //         imageUrls: provider.imageUrls,
-                          //         onAddTap: () =>
-                          //             provider.pickAndUploadImages(),
-                          //         onRemove: (index) =>
-                          //             provider.removeImageAt(index),
-                          //       ),
-                          // ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: size * 0.01),
                     // ! Two Column Layout Product adding
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,12 +83,6 @@ class ProductAddFormScreen extends StatelessWidget {
                                   "eg: ₹ 100/-",
                                   productProvider.regPriceController,
                                 ),
-                                buildTextField(
-                                  context,
-                                  'Sale Price',
-                                  'eg: ₹ 100/-',
-                                  productProvider.salePriceController,
-                                ),
                               ],
                             ),
                           ),
@@ -140,13 +110,7 @@ class ProductAddFormScreen extends StatelessWidget {
                                     );
                                   },
                                 ),
-                                // !! Color Text Form Field
-                                buildTextField(
-                                  context,
-                                  'Colors',
-                                  'eg: Red',
-                                  productProvider.colorsController,
-                                ),
+                                
                                 // ! C A T E G O R I E S \\ DROP DOWN
                                 Consumer<ProductProvider>(
                                   builder: (context, value, child) {
@@ -162,12 +126,13 @@ class ProductAddFormScreen extends StatelessWidget {
                                     );
                                   },
                                 ),
-                                // ! QUANTITY TEXT FORM FIELD
+
+                                // !  SALE PRIZE
                                 buildTextField(
                                   context,
-                                  'Quantity',
-                                  'eg: 10',
-                                  productProvider.quantityController,
+                                  'Sale Price',
+                                  'eg: ₹ 100/-',
+                                  productProvider.salePriceController,
                                 ),
                               ],
                             ),
@@ -176,38 +141,42 @@ class ProductAddFormScreen extends StatelessWidget {
                       ],
                     ),
 
-                    SizedBox(height: 20),
+                    // ! DYNAMIC FIElD
+                    SellerDynamicFieldsSection(),
 
-                    // !Add Product Button
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          addProductSubmit(context, productProvider);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: WebColors.buttonPurple,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: customText(
-                          16,
-                          'Add Product',
-                          webcolors: WebColors.textWite,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
+                    // !
+                    ProductVariantSection(),
                   ],
                 ),
               ),
             ),
+            //   ],
+            // ),
+            SizedBox(height: size * 0.01),
+
+            // !Add Product Button
+            Align(
+              alignment: Alignment.bottomRight,
+              child: ElevatedButton(
+                onPressed: () {
+                  addProductSubmit(context, productProvider);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: WebColors.buttonPurple,
+                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: customText(
+                  16,
+                  'Add Product',
+                  webcolors: WebColors.textWite,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
           ],
         ),
       ),
@@ -249,9 +218,7 @@ void addProductSubmit(
   // Check required fields again (your existing logic)
   if (productProvider.nameController.text.isEmpty ||
       productProvider.regPriceController.text.isEmpty ||
-      productProvider.salePriceController.text.isEmpty ||
-      productProvider.colorsController.text.isEmpty ||
-      productProvider.quantityController.text.isEmpty) {
+      productProvider.salePriceController.text.isEmpty ) {
     showOverlaySnackbar(
       context,
       'All Fields Must Be Filled',
@@ -266,10 +233,12 @@ void addProductSubmit(
     description: productProvider.descriptionController.text,
     regularPrice: productProvider.regPriceController.text,
     salePrice: productProvider.salePriceController.text,
-    quantity: productProvider.quantityController.text,
+    quantity: productProvider.quantityController.text.isNotEmpty
+        ? productProvider.quantityController.text
+        : '0',
     category: categoryName,
-    color: productProvider.colorsController.text,
     brand: brandName,
+    dynammicSpecs: productProvider.dynamicFieldValues,
   );
   productProvider.nameController.clear();
   productProvider.descriptionController.clear();
@@ -277,6 +246,7 @@ void addProductSubmit(
   productProvider.salePriceController.clear();
   productProvider.quantityController.clear();
   productProvider.colorsController.clear();
+  productProvider.dynamicFieldValues.clear();
   productProvider.clearSelections();
 
   showOverlaySnackbar(

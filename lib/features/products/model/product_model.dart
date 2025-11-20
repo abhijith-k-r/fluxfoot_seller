@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluxfoot_seller/features/products/model/colorvariant_model.dart';
 
 class ProductModel {
   final String id;
@@ -7,13 +8,14 @@ class ProductModel {
   final String regularPrice;
   final String salePrice;
   final String quantity;
-  final String? color;
   final String category;
   final String brand;
   final List<String> images;
   final String status;
   final String sellerId;
   final DateTime createdAt;
+  final Map<String, dynamic> dynammicSpecs;
+  final List<ColorvariantModel> variants;
 
   ProductModel({
     required this.id,
@@ -22,14 +24,14 @@ class ProductModel {
     required this.regularPrice,
     required this.salePrice,
     required this.quantity,
-    this.color,
     required this.category,
     required this.brand,
     required this.images,
     required this.status,
     required this.sellerId,
     required this.createdAt,
-    String? logoUrl,
+    this.dynammicSpecs = const {},
+    this.variants = const [],
   });
 
   factory ProductModel.fromFirestore(Map<String, dynamic> data, String id) {
@@ -39,12 +41,21 @@ class ProductModel {
     if (imagesData == null) {
       imagesList = [];
     } else if (imagesData is String) {
-      imagesList = [imagesData]; 
+      imagesList = [imagesData];
     } else if (imagesData is Iterable) {
       imagesList = List<String>.from(imagesData);
     } else {
       imagesList = [];
     }
+
+    // Read variants safely
+    final variantsRaw = data['variants'] as List<dynamic>? ?? [];
+    final variantsList = variantsRaw
+        .map(
+          (e) => ColorvariantModel.fromMap(Map<String, dynamic>.from(e as Map)),
+        )
+        .toList();
+
     return ProductModel(
       id: id,
       name: data['name'] ?? '',
@@ -52,13 +63,14 @@ class ProductModel {
       regularPrice: data['regularPrice'] ?? '',
       salePrice: data['salePrice'] ?? '',
       quantity: data['quantity'] ?? '',
-      color: data['color'] ?? '',
       category: data['category'] ?? '',
       brand: data['brand'] ?? '',
       images: imagesList,
       status: data['status'] ?? '',
       sellerId: data['sellerId'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
+      dynammicSpecs: data['dynamicSpecs'] as Map<String, dynamic>? ?? {},
+      variants: variantsList,
     );
   }
 
@@ -70,12 +82,13 @@ class ProductModel {
       'salePrice': salePrice,
       'quantity': quantity,
       'category': category,
-      'color': color,
       'brand': brand,
       'images': images,
       'status': status,
       'sellerId': sellerId,
       'createdAt': createdAt,
+      'dynamicSpecs': dynammicSpecs,
+      'variants': variants.map((v) => v.toMap()).toList(),
     };
   }
 }

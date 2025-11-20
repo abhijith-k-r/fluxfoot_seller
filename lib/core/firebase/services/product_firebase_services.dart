@@ -9,47 +9,53 @@ import 'package:fluxfoot_seller/features/products/model/product_model.dart';
 
 class ProductFirebaseServices {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   //! Function to fetch data from Firestore
   Future<List<DropdownItemModel>> fetchDropdownData(
     String collectionName,
   ) async {
-    final snapshot = await _firestore
-        .collection(collectionName)
-        .get();
+    final snapshot = await _firestore.collection(collectionName).get();
 
     return snapshot.docs
         .map(
-          (doc) => DropdownItemModel(
-            id: doc.id,
-            name:
-                doc.data()['name'] ?? '',
-                    
-          ),
+          (doc) =>
+              DropdownItemModel(id: doc.id, name: doc.data()['name'] ?? ''),
         )
         .toList();
   }
 
-      // ! Adding a Product
+  // ! Adding a Product
   Future<void> addProduct(ProductModel product) async {
     try {
-      await _firestore.collection('products').add(product.toFireStore());
-      debugPrint('Category added successfully to Firestore!');
+      final docRef = _firestore.collection('products').doc();
+
+      final data = product.toFireStore();
+
+      data['id'] = docRef.id;
+
+      await docRef.set(data);
+
+      debugPrint(
+        'Product added successfully to Firestore with ID: ${docRef.id}',
+      );
+      
     } catch (e) {
       throw Exception('Failed to add category: $e');
     }
   }
 
-       // ! Streaming products (Read)
+  // ! Streaming products (Read)
   Stream<List<ProductModel>> readproducts(String sellerId) {
-    return _firestore.collection('products').where('sellerId',isEqualTo: sellerId).
-    snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => ProductModel.fromFirestore(doc.data(), doc.id))
-          .toList();
-    });
+    return _firestore
+        .collection('products')
+        .where('sellerId', isEqualTo: sellerId)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => ProductModel.fromFirestore(doc.data(), doc.id))
+              .toList();
+        });
   }
-
 
   // ! Updating a Product
   Future<void> updateProduct(ProductModel product) async {
@@ -58,15 +64,17 @@ class ProductFirebaseServices {
         throw Exception('product ID is required for updating');
       }
 
-      _firestore.collection('products').doc(product.id).update(product.toFireStore());
+      _firestore
+          .collection('products')
+          .doc(product.id)
+          .update(product.toFireStore());
       debugPrint('product updated successfully: ${product.name}');
     } catch (e) {
       throw Exception('Failed to update category: $e');
     }
   }
 
-
-   // ! Update Category Status (Block / Activ)
+  // ! Update Category Status (Block / Activ)
   Future<void> updateProductStatus(
     BuildContext context,
     ProductModel product,
@@ -91,9 +99,7 @@ class ProductFirebaseServices {
         showOverlaySnackbar(
           context,
           snackbarMessage,
-          newStatus == 'UnBlock'
-              ? WebColors.succesGreen
-              : WebColors.errorRed,
+          newStatus == 'UnBlock' ? WebColors.succesGreen : WebColors.errorRed,
         );
       }
     } catch (e) {
@@ -115,4 +121,26 @@ class ProductFirebaseServices {
     }
   }
 
+  // ! FETCH A SINGLE DOCUMENT BY ID
+  Future<Map<String, dynamic>?> getDocumentById(
+    String collectionPath,
+    String documentId,
+  ) async {
+    try {
+      final docSnapshot = await _firestore
+          .collection(collectionPath)
+          .doc(documentId)
+          .get();
+
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        return docSnapshot.data() as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint(
+        'Error fetching document $documentId from $collectionPath: $e',
+      );
+      return null;
+    }
+    return null;
+  }
 }

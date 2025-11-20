@@ -4,8 +4,12 @@ import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/firebase/services/product_firebase_services.dart';
+import 'package:fluxfoot_seller/features/products/model/category_model.dart';
+import 'package:fluxfoot_seller/features/products/model/colorvariant_model.dart';
 import 'package:fluxfoot_seller/features/products/model/dropdown_model.dart';
+import 'package:fluxfoot_seller/features/products/model/dynamicfield_model.dart';
 import 'package:fluxfoot_seller/features/products/model/product_model.dart';
+import 'package:fluxfoot_seller/features/products/model/sizequantity_model.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProductProvider extends ChangeNotifier {
@@ -38,6 +42,9 @@ class ProductProvider extends ChangeNotifier {
   final String _isActive = '';
   final cloudinary = CloudinaryPublic('dryij9oei', 'sr_default', cache: false);
 
+  CategoryModel? _selectedCategoryModel;
+  final Map<String, dynamic> _dynamicFieldValues = {};
+
   String? get selectedBrandId => _selectedBrandId;
   String? get selectedCategoryId => _selectedCategoryId;
   String? get selectedBrandName => _selectedBrandName;
@@ -63,6 +70,11 @@ class ProductProvider extends ChangeNotifier {
   List<String> get allImageUrls => [..._normalImageUrls, ..._threeDImageUrls];
   String get isActive => _isActive;
 
+  CategoryModel? get selectedCategoryModel => _selectedCategoryModel;
+  Map<String, dynamic> get dynamicFieldValues => _dynamicFieldValues;
+
+  dynamic getDynamicFieldValue(String fieldId) => _dynamicFieldValues[fieldId];
+
   //! --- SETTERS (MUST CALL notifyListeners) ---
   set selectedBrandId(String? newId) {
     if (_selectedBrandId != newId) {
@@ -76,14 +88,95 @@ class ProductProvider extends ChangeNotifier {
   }
 
   set selectedCategoryId(String? newId) {
-    if (_selectedCategoryId != newId) {
-      _selectedCategoryId = newId;
+    if (_selectedCategoryId == newId) return;
 
-      _updateSelectedName(_categoriesFuture, newId, (name) {
-        _selectedCategoryName = name;
-      });
+    _selectedCategoryId = newId;
+    _selectedCategoryModel = null;
+    _selectedCategoryName = null;
+    _dynamicFieldValues.clear();
+    productVariants.clear();
+
+    notifyListeners();
+
+    if (newId != null) {
+      fetchCategoryModel(newId)
+          .then((categoryModel) async {
+            if (categoryModel != null) {
+              _selectedCategoryModel = categoryModel;
+
+              for (var field in categoryModel.dynamicFields) {
+                if (field.type == DynamicFieldType.boolean) {
+                  _dynamicFieldValues[field.id] = 'false';
+                }
+              }
+
+              _updateSelectedName(_categoriesFuture, newId, (name) {
+                _selectedCategoryName = name;
+              });
+            } else {
+              _selectedCategoryModel = null;
+              _selectedCategoryName = null;
+            }
+
+            notifyListeners();
+          })
+          .catchError((error) {
+            debugPrint('Error fetching category model in setter: $error');
+            _selectedCategoryModel = null;
+            _selectedCategoryName = null;
+            notifyListeners();
+          });
+    } else {
+      _selectedCategoryName = null;
+    }
+  }
+
+  // ! ===== ======= ()======================
+  List<ColorvariantModel> productVariants = [];
+
+  void addColorVariant(String colorName, String colorCode) {
+    // Check if color already exists
+    if (!productVariants.any((v) => v.colorName == colorName)) {
+      productVariants.add(
+        ColorvariantModel(
+          colorName: colorName,
+          colorCode: colorCode,
+          imageUrls: [],
+          sizes: [],
+        ),
+      );
       notifyListeners();
     }
+  }
+
+  void removeColorVariant(String colorName) {
+    productVariants.removeWhere((v) => v.colorName == colorName);
+    notifyListeners();
+  }
+
+  void addSizeToVariant(String colorName, String size, int quantity) {
+    final index = productVariants.indexWhere((v) => v.colorName == colorName);
+    if (index == -1) return;
+
+    final variant = productVariants[index];
+    final sizeIndex = variant.sizes.indexWhere((s) => s.size == size);
+
+    if (quantity <= 0) {
+      if (sizeIndex != -1) {
+        variant.sizes.removeAt(sizeIndex);
+      }
+    } else {
+      if (sizeIndex != -1) {
+        variant.sizes[sizeIndex].quantity = quantity;
+      } else {
+        variant.sizes = [
+          ...variant.sizes,
+          SizeQuantityVariant(size: size, quantity: quantity),
+        ];
+      }
+    }
+
+    notifyListeners();
   }
 
   //! Helper method to look up the name from the Future list
@@ -151,13 +244,53 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  // // ! SET INITIAL LOGO URL
-  // void setInitialLogoUrl(String? url) {
-  //   if (_logoUrl != url) {
-  //     _logoUrl = url;
-  //     notifyListeners();
-  //   }
-  // }
+  // !========(======)=========Add an image URL to a specific color variant
+
+  void addImgeToVariant(String colorName, String imageUrl) {
+    final idx = productVariants.indexWhere((v) => v.colorName == colorName);
+
+    if (idx == -1) return;
+    final variant = productVariants[idx];
+    variant.imageUrls = [...variant.imageUrls, imageUrl];
+    notifyListeners();
+  }
+
+  //! Remove image URL from a specific color variant
+  void removeImageFromVariant(String colorName, String imageUrl) {
+    final idx = productVariants.indexWhere((v) => v.colorName == colorName);
+    if (idx == -1) return;
+    final varint = productVariants[idx];
+    varint.imageUrls = varint.imageUrls.where((u) => u != imageUrl).toList();
+    notifyListeners();
+  }
+
+  // !Pick and upload images for a specific variant (uses your existing Cloudinary logic)
+  Future<void> pickAndUpladImagesForVariant(String colorName) async {
+    if (_isLoading) return;
+
+    final List<XFile>? pickedFiles = await _picker.pickMultiImage();
+    if (pickedFiles == null || pickedFiles.isEmpty) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    for (var imgFile in pickedFiles) {
+      try {
+        CloudinaryResponse response = await cloudinary.uploadFile(
+          CloudinaryFile.fromFile(
+            imgFile.path,
+            resourceType: CloudinaryResourceType.Image,
+          ),
+        );
+        addImgeToVariant(colorName, response.secureUrl);
+      } catch (e) {
+        debugPrint('Error uploading image for variant $colorName: $e');
+      }
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
 
   // ! To Pick and Upload image
   Future<void> pickAndUploadImages() async {
@@ -220,6 +353,29 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
+  // !=== Set Dynamic  Fields
+
+  void setDynamicFieldValue(String fieldId, dynamic value) {
+    _dynamicFieldValues[fieldId] = value;
+    notifyListeners();
+  }
+
+  Future<CategoryModel?> fetchCategoryModel(String categoryId) async {
+    try {
+      final categoryData = await _productFirebaseServices.getDocumentById(
+        'categories',
+        categoryId,
+      );
+
+      if (categoryData != null) {
+        return CategoryModel.fromFirestore(categoryData, categoryId);
+      }
+    } catch (e) {
+      debugPrint('Error fetching category model: $e');
+    }
+    return null;
+  }
+
   // ! Add PRODUCT
   Future<void> addProduct({
     required List<String> images,
@@ -228,9 +384,9 @@ class ProductProvider extends ChangeNotifier {
     required String regularPrice,
     required String salePrice,
     required String quantity,
-    String? color,
     required String category,
     required String brand,
+    Map<String, dynamic>? dynammicSpecs,
   }) async {
     if (name.isEmpty ||
         regularPrice.isEmpty ||
@@ -259,12 +415,13 @@ class ProductProvider extends ChangeNotifier {
         salePrice: salePrice,
         quantity: quantity,
         category: category,
-        color: color,
         brand: brand,
         images: images,
         status: 'active',
         sellerId: sellerId,
         createdAt: DateTime.now(),
+        dynammicSpecs: Map<String, dynamic>.from(_dynamicFieldValues),
+        variants: productVariants,
       );
 
       await _productFirebaseServices.addProduct(newProduct);
@@ -349,7 +506,6 @@ class ProductProvider extends ChangeNotifier {
         salePrice: salePrice,
         quantity: quantity,
         category: category,
-        color: color,
         brand: brand,
         images: images,
         status: 'active',
@@ -388,18 +544,6 @@ class ProductProvider extends ChangeNotifier {
     _selectedBrandName = null;
     _selectedCategoryName = null;
     notifyListeners();
-  }
-
-  void clearAllFields() {
-    _nameController.clear();
-    _descriptionController.clear();
-    _regPriceController.clear();
-    _salePriceController.clear();
-    _quantityController.clear();
-    _colorsController.clear();
-
-    clearSelectedImages();
-    clearSelections();
   }
 
   @override
