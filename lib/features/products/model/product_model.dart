@@ -14,7 +14,7 @@ class ProductModel {
   final String status;
   final String sellerId;
   final DateTime createdAt;
-  final Map<String, dynamic> dynammicSpecs;
+  final Map<String, dynamic> dynamicSpecs;
   final List<ColorvariantModel> variants;
 
   ProductModel({
@@ -30,7 +30,7 @@ class ProductModel {
     required this.status,
     required this.sellerId,
     required this.createdAt,
-    this.dynammicSpecs = const {},
+    this.dynamicSpecs = const {},
     this.variants = const [],
   });
 
@@ -69,7 +69,7 @@ class ProductModel {
       status: data['status'] ?? '',
       sellerId: data['sellerId'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
-      dynammicSpecs: data['dynamicSpecs'] as Map<String, dynamic>? ?? {},
+      dynamicSpecs: data['dynamicSpecs'] as Map<String, dynamic>? ?? {},
       variants: variantsList,
     );
   }
@@ -87,7 +87,7 @@ class ProductModel {
       'status': status,
       'sellerId': sellerId,
       'createdAt': createdAt,
-      'dynamicSpecs': dynammicSpecs,
+      'dynamicSpecs': dynamicSpecs,
       'variants': variants.map((v) => v.toMap()).toList(),
     };
   }

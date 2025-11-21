@@ -420,7 +420,7 @@ class ProductProvider extends ChangeNotifier {
         status: 'active',
         sellerId: sellerId,
         createdAt: DateTime.now(),
-        dynammicSpecs: Map<String, dynamic>.from(_dynamicFieldValues),
+        dynamicSpecs: Map<String, dynamic>.from(_dynamicFieldValues),
         variants: productVariants,
       );
 
@@ -436,36 +436,94 @@ class ProductProvider extends ChangeNotifier {
 
   // ! Initilaize Dropdowns for Edit Screen
   Future<void> initializeForEdit(ProductModel product) async {
-    _selectedBrandId = null;
-    _selectedCategoryId = null;
-    // _logoUrl = product.images;
-    _normalImageUrls.clear();
-    _threeDImageUrls.clear();
-    _searchTerm = '';
+    // _selectedBrandId = null;
+    // _selectedCategoryId = null;
+    // // _logoUrl = product.images;
+    // _normalImageUrls.clear();
+    // _threeDImageUrls.clear();
+    // _searchTerm = '';
 
-    final brands = await _brandsFuture;
-    final categories = await _categoriesFuture;
+    // final brands = await _brandsFuture;
+    // final categories = await _categoriesFuture;
 
-    final currentBrand = brands.firstWhere(
-      (item) => item.name == product.brand,
-      orElse: () => DropdownItemModel(id: '', name: ''),
-    );
+    // final currentBrand = brands.firstWhere(
+    //   (item) => item.name == product.brand,
+    //   orElse: () => DropdownItemModel(id: '', name: ''),
+    // );
 
-    final currentCategory = categories.firstWhere(
-      (item) => item.name == product.category,
-      orElse: () => DropdownItemModel(id: '', name: ''),
-    );
+    // final currentCategory = categories.firstWhere(
+    //   (item) => item.name == product.category,
+    //   orElse: () => DropdownItemModel(id: '', name: ''),
+    // );
 
-    if (currentBrand.id.isNotEmpty) {
-      _selectedBrandId = currentBrand.id;
-      _selectedBrandName = currentBrand.name;
+    // if (currentBrand.id.isNotEmpty) {
+    //   _selectedBrandId = currentBrand.id;
+    //   _selectedBrandName = currentBrand.name;
+    // }
+    // if (currentCategory.id.isNotEmpty) {
+    //   _selectedCategoryId = currentCategory.id;
+    //   _selectedCategoryName = currentCategory.name;
+    // }
+
+    // _normalImageUrls = product.images;
+
+    _nameController.text = product.name;
+    _descriptionController.text = product.description ?? '';
+    _regPriceController.text = product.regularPrice;
+    _salePriceController.text = product.salePrice;
+    _quantityController.text = product.quantity;
+    _colorsController.text = '';
+
+    _normalImageUrls = List<String>.from(product.images);
+
+    _dynamicFieldValues.clear();
+    if (product.dynamicSpecs.isNotEmpty) {
+      _dynamicFieldValues.addAll(
+        Map<String, dynamic>.from(product.dynamicSpecs),
+      );
     }
-    if (currentCategory.id.isNotEmpty) {
-      _selectedCategoryId = currentCategory.id;
-      _selectedCategoryName = currentCategory.name;
-    }
 
-    _normalImageUrls = product.images;
+    productVariants = product.variants.map((v) {
+      return ColorvariantModel(
+        colorName: v.colorName,
+        colorCode: v.colorCode,
+        imageUrls: List<String>.from(v.imageUrls),
+        sizes: v.sizes
+            .map((s) => SizeQuantityVariant(size: s.size, quantity: s.quantity))
+            .toList(),
+      );
+    }).toList();
+
+    // Attempt to map saved brand/category names back to their IDs so the
+    // dropdowns show the selected values in the edit UI.
+    try {
+      final brands = await _brandsFuture;
+      final categories = await _categoriesFuture;
+
+      final currentBrand = brands.firstWhere(
+        (item) => item.name == product.brand,
+        orElse: () => DropdownItemModel(id: '', name: ''),
+      );
+
+      final currentCategory = categories.firstWhere(
+        (item) => item.name == product.category,
+        orElse: () => DropdownItemModel(id: '', name: ''),
+      );
+
+      if (currentBrand.id.isNotEmpty) {
+        _selectedBrandId = currentBrand.id;
+        _selectedBrandName = currentBrand.name;
+      }
+
+      if (currentCategory.id.isNotEmpty) {
+        _selectedCategoryId = currentCategory.id;
+        _selectedCategoryName = currentCategory.name;
+        // Also fetch and cache the category model for rendering dynamic fields
+        _selectedCategoryModel = await fetchCategoryModel(_selectedCategoryId!);
+      }
+    } catch (e) {
+      debugPrint('Error mapping brand/category for edit screen: $e');
+    }
 
     notifyListeners();
   }
@@ -511,6 +569,8 @@ class ProductProvider extends ChangeNotifier {
         status: 'active',
         sellerId: sellerId,
         createdAt: DateTime.now(),
+        dynamicSpecs: Map<String, dynamic>.from(_dynamicFieldValues),
+        variants: List<ColorvariantModel>.from(productVariants),
       );
 
       await _productFirebaseServices.updateProduct(updateProduct);
