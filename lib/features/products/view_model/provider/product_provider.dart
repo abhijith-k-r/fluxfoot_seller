@@ -154,12 +154,36 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeSizeFromVariant(String colorName, String size) {
+    final idx = productVariants.indexWhere((v) => v.colorName == colorName);
+    if (idx == -1) return;
+
+    final variant = productVariants[idx];
+    final newSizes = variant.sizes
+        .where((s) => s.size.trim().toLowerCase() != size.trim().toLowerCase())
+        .toList();
+
+    productVariants[idx] = ColorvariantModel(
+      colorName: variant.colorName,
+      colorCode: variant.colorCode,
+      imageUrls: variant.imageUrls,
+      sizes: newSizes,
+    );
+    notifyListeners();
+  }
+
   void addSizeToVariant(String colorName, String size, int quantity) {
     final index = productVariants.indexWhere((v) => v.colorName == colorName);
     if (index == -1) return;
 
     final variant = productVariants[index];
-    final sizeIndex = variant.sizes.indexWhere((s) => s.size == size);
+    final normalized = size.trim();
+
+    final sizeIndex = variant.sizes.indexWhere(
+      (s) => s.size.trim().toLowerCase() == normalized.toLowerCase(),
+    );
+
+    final List<SizeQuantityVariant> newSizes = List.from(variant.sizes);
 
     if (quantity <= 0) {
       if (sizeIndex != -1) {
@@ -167,14 +191,21 @@ class ProductProvider extends ChangeNotifier {
       }
     } else {
       if (sizeIndex != -1) {
-        variant.sizes[sizeIndex].quantity = quantity;
+        newSizes[sizeIndex] = SizeQuantityVariant(
+          size: size,
+          quantity: quantity,
+        );
       } else {
-        variant.sizes = [
-          ...variant.sizes,
-          SizeQuantityVariant(size: size, quantity: quantity),
-        ];
+        newSizes.add(SizeQuantityVariant(size: normalized, quantity: quantity));
       }
     }
+
+    productVariants[index] = ColorvariantModel(
+      colorName: variant.colorName,
+      colorCode: variant.colorCode,
+      imageUrls: variant.imageUrls,
+      sizes: newSizes,
+    );
 
     notifyListeners();
   }

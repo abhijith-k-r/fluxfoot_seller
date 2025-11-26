@@ -6,6 +6,7 @@ import 'package:fluxfoot_seller/features/products/model/colorvariant_model.dart'
 import 'package:fluxfoot_seller/features/products/model/product_model.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/dropdown_menu_items.dart';
+import 'package:intl/intl.dart';
 
 // ! Product Contens / Details inside List view Seperator.
 Container productsContents(
@@ -80,7 +81,12 @@ Container productsContents(
         SizedBox(
           width: size * 0.15,
           child: Center(
-            child: Center(child: customText(15, product.createdAt.toString())),
+            child: Center(
+              child: customText(
+                15,
+                DateFormat('yyyy-MM-dd  a').format(product.createdAt),
+              ),
+            ),
           ),
         ),
 

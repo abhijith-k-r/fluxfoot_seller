@@ -7,16 +7,17 @@ import 'package:fluxfoot_seller/features/products/model/colorvariant_model.dart'
 import 'package:fluxfoot_seller/features/products/model/dynamicfield_model.dart';
 import 'package:fluxfoot_seller/features/products/model/sizequantity_model.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/show_helper_function.dart';
 import 'package:provider/provider.dart';
 
 //! Placeholder for future size/color picking dialogs
-void showSizeInput(
-  BuildContext context,
-  ProductProvider provider,
-  String colorName,
-) {
-  // We will define this later
-}
+// void showSizeInput(
+//   BuildContext context,
+//   ProductProvider provider,
+//   String colorName,
+// ) {
+//   // We will define this later
+// }
 
 // ! ============()=============
 Widget buildSizeQuantityTable(
@@ -26,69 +27,79 @@ Widget buildSizeQuantityTable(
   SizeQuantityVariant? sizeQuantity,
   DynamicFieldModel? sizeField,
 }) {
-  if (sizeField == null || sizeField.options.isEmpty) {
-    return customText(15, 'No size options available for this category.');
+  if (sizeField == null) {
+    return const Text(
+      'Size options not available for this category.',
+      style: TextStyle(fontStyle: FontStyle.italic),
+    );
   }
 
   return Column(
+    mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    children: sizeField.options.map((option) {
-      final existing = variant.sizes.firstWhere(
-        (s) => s.size == option,
-        orElse: () => SizeQuantityVariant(size: '', quantity: 0),
-      );
+    children: [
+      //! === Existing sizes rows ===
+      ...variant.sizes.map((existing) {
+        final sizeLabel = existing.size;
 
-      final initialQtyText = existing.size.isNotEmpty
-          ? existing.quantity.toString()
-          : '';
+        final TextEditingController qtyController = TextEditingController(
+          text: existing.quantity.toString(),
+        );
 
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                option,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+        qtyController.addListener(() {
+          final q = int.tryParse(qtyController.text) ?? 0;
+          if (q != existing.quantity) {
+            provider.addSizeToVariant(variant.colorName, sizeLabel, q);
+          }
+        });
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  sizeLabel,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(
-              width: 110,
-              child: TextFormField(
-                initialValue: initialQtyText,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Qty',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+              SizedBox(
+                width: 110,
+                child: TextFormField(
+                  controller: qtyController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    hintText: 'Qty',
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(),
                   ),
-                  border: OutlineInputBorder(),
                 ),
-                onChanged: (value) {
-                  final q = int.tryParse(value) ?? 0;
-                  provider.addSizeToVariant(variant.colorName, option, q);
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: WebColors.errorRed,
+                  size: 20,
+                ),
+                onPressed: () {
+                  provider.removeSizeFromVariant(variant.colorName, sizeLabel);
                 },
               ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(
-                Icons.delete_outline,
-                color: WebColors.errorRed,
-                size: 20,
-              ),
-              onPressed: () {
-                provider.addSizeToVariant(variant.colorName, option, 0);
-              },
-            ),
-          ],
-        ),
-      );
-    }).toList(),
+            ],
+          ),
+        );
+      }),
+
+      const SizedBox(height: 8),
+    ],
   );
 }
 
@@ -155,7 +166,7 @@ class ProductVariantSection extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       webcolors: WebColors.textBlack,
                     ),
-                    // Button to ADD ANOTHER COLOR
+                    // ! Button to ADD ANOTHER COLOR
                     ElevatedButton.icon(
                       onPressed: () => showColorSelectionDialog(
                         context,
@@ -166,7 +177,7 @@ class ProductVariantSection extends StatelessWidget {
                       label: const Text('Add Color'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: WebColors.buttonPurple,
-                        foregroundColor: Colors.white,
+                        foregroundColor: WebColors.textWite,
                       ),
                     ),
                   ],
@@ -219,7 +230,6 @@ class ProductVariantSection extends StatelessWidget {
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            // Safely parse the color code (assuming it's a hex string like #RRGGBB)
             color: Color(int.parse(variant.colorCode.replaceAll('#', '0xFF'))),
             shape: BoxShape.circle,
             border: Border.all(color: Colors.grey.shade300),
@@ -238,7 +248,6 @@ class ProductVariantSection extends StatelessWidget {
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: () => provider.removeColorVariant(variant.colorName),
             ),
-            // The default ExpansionTile arrow handles the rotation
             const Icon(Icons.expand_more),
           ],
         ),
@@ -249,19 +258,18 @@ class ProductVariantSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Image Upload Area (Needs its own focused widget)
+                //! 1. Image Upload Area (Needs its own focused widget)
                 customText(
                   14,
                   'Images for ${variant.colorName}',
                   fontWeight: FontWeight.w500,
                 ),
                 const SizedBox(height: 8),
-                //
                 _buildImageUploadGrid(context, provider, variant),
 
                 const SizedBox(height: 24),
 
-                // 2. Size/Quantity Management (Table structure)
+                //! 2. Size/Quantity Management (Table structure)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -270,14 +278,31 @@ class ProductVariantSection extends StatelessWidget {
                       'Sizes & Stock',
                       fontWeight: FontWeight.w500,
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () =>
-                          showSizeInput(context, provider, variant.colorName),
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Add Size'),
+
+                    //! === NEW "Add Size" Button ===
+                    TextButton.icon(
+                      onPressed: field == null
+                          ? null
+                          : () => showAddSizeDialog(
+                              context,
+                              provider,
+                              variant.colorName,
+                              field,
+                            ),
+                      icon: const Icon(Icons.add, size: 20),
+                      label: const Text('Add Size Option'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        backgroundColor: WebColors.buttonPurple,
+                        foregroundColor: WebColors.textWite,
+                      ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 8),
                 buildSizeQuantityTable(
                   context,
@@ -294,57 +319,6 @@ class ProductVariantSection extends StatelessWidget {
     );
   }
 
-  //   Widget _buildImageUploadGrid(
-  //     BuildContext context,
-  //     ProductProvider provider,
-  //     ColorvariantModel variant,
-  //   ) {
-  //     final size = MediaQuery.of(context).size.width;
-  //     return Container(
-  //       height: 200,
-  //       decoration: BoxDecoration(
-  //         color: Colors.grey.shade100,
-  //         borderRadius: BorderRadius.circular(8),
-  //         border: Border.all(
-  //           color: Colors.grey.shade300,
-  //           style: BorderStyle.solid,
-  //         ),
-  //       ),
-  //       child: Column(
-  //         children: [
-  //           Flexible(
-  //             fit: FlexFit.loose,
-  //             child: Consumer<ProductProvider>(
-  //               builder: (context, provider, child) => buildAddEditProductImage(
-  //                 size: size,
-  //                 imageUrls: provider.normalImageUrls,
-  //                 title: 'PNG IMAGES',
-  //                 onAddTap: () => provider.pickAndUploadImages(),
-  //                 onRemove: (index) => provider.removeImageAt(index),
-  //               ),
-  //             ),
-  //           ),
-
-  //           SizedBox(height: 20),
-  //           //! **3D IMAGES (Right)**
-  //           // Flexible(
-  //           //   fit: FlexFit.loose,
-  //           //   child: Consumer<ProductProvider>(
-  //           //     builder: (context, provider, child) => buildAddEditProductImage(
-  //           //       size: size,
-  //           //       imageUrls: provider.normalImageUrls,
-  //           //       title: '3D IMAGES',
-  //           //       onAddTap: () => provider.pickAndUploadImages(),
-  //           //       onRemove: (index) => provider.removeImageAt(index),
-  //           //     ),
-  //           //   ),
-  //           // ),
-  //         ],
-  //       ),
-  //     );
-  //   }
-  // }
-
   // ! ======== () ========
 
   Widget _buildImageUploadGrid(
@@ -352,6 +326,7 @@ class ProductVariantSection extends StatelessWidget {
     ProductProvider provider,
     ColorvariantModel variant,
   ) {
+    final size = MediaQuery.of(context).size.width;
     return Column(
       children: [
         if (variant.imageUrls.isEmpty)
@@ -368,7 +343,7 @@ class ProductVariantSection extends StatelessWidget {
             child: Center(child: Text('No images for ${variant.colorName}.')),
           )
         else
-          Container(
+          SizedBox(
             height: 120,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
@@ -420,8 +395,16 @@ class ProductVariantSection extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () =>
                 provider.pickAndUpladImagesForVariant(variant.colorName),
-            icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
-            label: const Text('Upload Images for this color'),
+            icon: Icon(
+              Icons.add_photo_alternate_outlined,
+              size: size * 0.015,
+              color: WebColors.iconWhite,
+            ),
+            label: customText(
+              size * 0.009,
+              'Upload Images for this color',
+              webcolors: WebColors.textWite,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: WebColors.buttonPurple,
             ),
@@ -472,16 +455,6 @@ class ProductVariantSection extends StatelessWidget {
         }
       }
     }
-
-    // !  // Fallback to previous hard-coded options if admin didn't set colors
-    // if (availableColors.isEmpty) {
-    //   availableColors = [
-    //     {'name': 'Red', 'code': '#FF0000'},
-    //     {'name': 'Blue', 'code': '#0000FF'},
-    //     {'name': 'Green', 'code': '#00FF00'},
-    //     {'name': 'Black', 'code': '#000000'},
-    //   ];
-    // }
 
     showDialog(
       context: context,
