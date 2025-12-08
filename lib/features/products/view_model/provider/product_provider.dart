@@ -467,37 +467,6 @@ class ProductProvider extends ChangeNotifier {
 
   // ! Initilaize Dropdowns for Edit Screen
   Future<void> initializeForEdit(ProductModel product) async {
-    // _selectedBrandId = null;
-    // _selectedCategoryId = null;
-    // // _logoUrl = product.images;
-    // _normalImageUrls.clear();
-    // _threeDImageUrls.clear();
-    // _searchTerm = '';
-
-    // final brands = await _brandsFuture;
-    // final categories = await _categoriesFuture;
-
-    // final currentBrand = brands.firstWhere(
-    //   (item) => item.name == product.brand,
-    //   orElse: () => DropdownItemModel(id: '', name: ''),
-    // );
-
-    // final currentCategory = categories.firstWhere(
-    //   (item) => item.name == product.category,
-    //   orElse: () => DropdownItemModel(id: '', name: ''),
-    // );
-
-    // if (currentBrand.id.isNotEmpty) {
-    //   _selectedBrandId = currentBrand.id;
-    //   _selectedBrandName = currentBrand.name;
-    // }
-    // if (currentCategory.id.isNotEmpty) {
-    //   _selectedCategoryId = currentCategory.id;
-    //   _selectedCategoryName = currentCategory.name;
-    // }
-
-    // _normalImageUrls = product.images;
-
     _nameController.text = product.name;
     _descriptionController.text = product.description ?? '';
     _regPriceController.text = product.regularPrice;

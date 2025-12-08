@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_back_button.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
-import 'package:fluxfoot_seller/core/widgets/routs_widgets.dart';
 import 'package:fluxfoot_seller/features/products/model/product_model.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
-import 'package:fluxfoot_seller/features/products/views/widgets/form_elements.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/product_dynamicfield_section.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/product_variant_section.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/productadddform_left_form_colum.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/productaddform_right_form_colum.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/producteditform_edit_button.dart';
 import 'package:provider/provider.dart';
 
 class ProductEditFormScreen extends StatelessWidget {
@@ -66,85 +67,10 @@ class ProductEditFormScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // !LEFT COLUMN FORM FIELD
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                buildTextField(
-                                  context,
-                                  'Product Name',
-                                  'eg: Jercey',
-                                  productProvider.nameController,
-                                ),
-                                buildTextArea(
-                                  context,
-                                  'Full Description',
-                                  '',
-                                  productProvider.descriptionController,
-                                ),
-                                buildTextField(
-                                  context,
-                                  'Regular Price',
-                                  "eg: ₹ 100/-",
-                                  productProvider.regPriceController,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        buildLeftColumForm(context, productProvider),
 
                         //! RIGHT COLUMN FORM FIELD
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // ! B R A N D S \\ DROP DOWN
-                                Consumer<ProductProvider>(
-                                  builder: (context, value, child) {
-                                    return buildDropdownField(
-                                      context: context,
-                                      label: 'Brands',
-                                      hint: '',
-                                      itemsFuture: value.brandsFuture,
-                                      selectedValue: value.selectedBrandId,
-                                      onChanged: (newId) {
-                                        value.selectedBrandId = newId;
-                                      },
-                                    );
-                                  },
-                                ),
-
-                                // ! C A T E G O R I E S \\ DROP DOWN
-                                Consumer<ProductProvider>(
-                                  builder: (context, value, child) {
-                                    return buildDropdownField(
-                                      context: context,
-                                      label: 'Categories',
-                                      hint: '',
-                                      itemsFuture: value.categoriesFuture,
-                                      selectedValue: value.selectedCategoryId,
-                                      onChanged: (newId) {
-                                        value.selectedCategoryId = newId;
-                                      },
-                                    );
-                                  },
-                                ),
-
-                                // !  SALE PRIZE
-                                buildTextField(
-                                  context,
-                                  'Sale Price',
-                                  'eg: ₹ 100/-',
-                                  productProvider.salePriceController,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        buildRighColumFormField(context, productProvider),
                       ],
                     ),
 
@@ -155,77 +81,7 @@ class ProductEditFormScreen extends StatelessWidget {
                     const ProductVariantSection(),
 
                     // !Add Product Button
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final brandId = productProvider.selectedBrandId;
-                          final categoryId = productProvider.selectedCategoryId;
-
-                          final brandName = await productProvider.getNameFromId(
-                            brandId,
-                            productProvider.brandsFuture,
-                          );
-                          final categoryName = await productProvider
-                              .getNameFromId(
-                                categoryId,
-                                productProvider.categoriesFuture,
-                              );
-
-                          if (brandName == null || categoryName == null) {
-                            showOverlaySnackbar(
-                              context,
-                              'brand/category must be selected',
-                              WebColors.errorRed,
-                            );
-                            return;
-                          }
-
-                          await productProvider.updateExistingProduct(
-                            id: product.id,
-                            name: productProvider.nameController.text,
-                            images: productProvider.allImageUrls,
-                            description:
-                                productProvider
-                                    .descriptionController
-                                    .text
-                                    .isEmpty
-                                ? null
-                                : productProvider.descriptionController.text,
-                            regularPrice:
-                                productProvider.regPriceController.text,
-                            salePrice: productProvider.salePriceController.text,
-                            quantity: productProvider.quantityController.text,
-                            category: categoryName,
-                            color: null,
-                            brand: brandName,
-                          );
-
-                          showOverlaySnackbar(
-                            context,
-                            'Successfully Updated Product',
-                            WebColors.succesGreen,
-                          );
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: WebColors.buttonPurple,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: customText(
-                          16,
-                          'Save Changes',
-                          webcolors: WebColors.textWite,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    buildEditProductButton(productProvider, context, product),
                   ],
                 ),
               ),

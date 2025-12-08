@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_back_button.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
-import 'package:fluxfoot_seller/core/widgets/routs_widgets.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
-import 'package:fluxfoot_seller/features/products/views/widgets/form_elements.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/product_dynamicfield_section.dart';
 import 'package:fluxfoot_seller/features/products/views/widgets/product_variant_section.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/productadddform_left_form_colum.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/productaddform_right_form_colum.dart';
+import 'package:fluxfoot_seller/features/products/views/widgets/productaddform_submit_logic.dart';
 import 'package:provider/provider.dart';
 
 class ProductAddFormScreen extends StatelessWidget {
@@ -59,85 +60,10 @@ class ProductAddFormScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // !LEFT COLUMN FORM FIELD
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                buildTextField(
-                                  context,
-                                  'Product Name',
-                                  'eg: Jercey',
-                                  productProvider.nameController,
-                                ),
-                                buildTextArea(
-                                  context,
-                                  'Full Description',
-                                  '',
-                                  productProvider.descriptionController,
-                                ),
-                                buildTextField(
-                                  context,
-                                  'Regular Price',
-                                  "eg: ₹ 100/-",
-                                  productProvider.regPriceController,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        buildLeftColumForm(context, productProvider),
 
                         //! RIGHT COLUMN FORM FIELD
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // ! B R A N D S \\ DROP DOWN
-                                Consumer<ProductProvider>(
-                                  builder: (context, value, child) {
-                                    return buildDropdownField(
-                                      context: context,
-                                      label: 'Brands',
-                                      hint: '',
-                                      itemsFuture: value.brandsFuture,
-                                      selectedValue: value.selectedBrandId,
-                                      onChanged: (newId) {
-                                        value.selectedBrandId = newId;
-                                      },
-                                    );
-                                  },
-                                ),
-                                
-                                // ! C A T E G O R I E S \\ DROP DOWN
-                                Consumer<ProductProvider>(
-                                  builder: (context, value, child) {
-                                    return buildDropdownField(
-                                      context: context,
-                                      label: 'Categories',
-                                      hint: '',
-                                      itemsFuture: value.categoriesFuture,
-                                      selectedValue: value.selectedCategoryId,
-                                      onChanged: (newId) {
-                                        value.selectedCategoryId = newId;
-                                      },
-                                    );
-                                  },
-                                ),
-
-                                // !  SALE PRIZE
-                                buildTextField(
-                                  context,
-                                  'Sale Price',
-                                  'eg: ₹ 100/-',
-                                  productProvider.salePriceController,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        buildRighColumFormField(context, productProvider),
                       ],
                     ),
 
@@ -150,8 +76,7 @@ class ProductAddFormScreen extends StatelessWidget {
                 ),
               ),
             ),
-            //   ],
-            // ),
+
             SizedBox(height: size * 0.01),
 
             // !Add Product Button
@@ -182,77 +107,5 @@ class ProductAddFormScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-// !  asdfghj+====== ===(====)
-
-void addProductSubmit(
-  BuildContext context,
-  ProductProvider productProvider,
-) async {
-  //! Get the IDs selected by the dropdown
-  final brandId = productProvider.selectedBrandId ?? '';
-  final categoryId = productProvider.selectedCategoryId ?? '';
-
-  //! Look up the actual Name using the new helper function (assuming you've implemented it)
-  final brandName = await productProvider.getNameFromId(
-    brandId,
-    productProvider.brandsFuture,
-  );
-  final categoryName = await productProvider.getNameFromId(
-    categoryId,
-    productProvider.categoriesFuture,
-  );
-
-  if (brandName == null || categoryName == null) {
-    showOverlaySnackbar(
-      context,
-      'brand/category must be selected',
-      WebColors.errorRed,
-    );
-
-    debugPrint('Error: Brand or Category name not found. Check selection.');
-    return;
-  }
-
-  // Check required fields again (your existing logic)
-  if (productProvider.nameController.text.isEmpty ||
-      productProvider.regPriceController.text.isEmpty ||
-      productProvider.salePriceController.text.isEmpty ) {
-    showOverlaySnackbar(
-      context,
-      'All Fields Must Be Filled',
-      WebColors.errorRed,
-    );
-    return;
-  }
-
-  await productProvider.addProduct(
-    images: productProvider.normalImageUrls,
-    name: productProvider.nameController.text,
-    description: productProvider.descriptionController.text,
-    regularPrice: productProvider.regPriceController.text,
-    salePrice: productProvider.salePriceController.text,
-    quantity: productProvider.quantityController.text.isNotEmpty
-        ? productProvider.quantityController.text
-        : '0',
-    category: categoryName,
-    brand: brandName,
-    dynammicSpecs: productProvider.dynamicFieldValues,
-  );
-  productProvider.nameController.clear();
-  productProvider.descriptionController.clear();
-  productProvider.regPriceController.clear();
-  productProvider.salePriceController.clear();
-  productProvider.quantityController.clear();
-  productProvider.colorsController.clear();
-  productProvider.dynamicFieldValues.clear();
-  productProvider.clearSelections();
-
-  showOverlaySnackbar(
-    context,
-    'Successfully Added Product',
-    WebColors.succesGreen,
-  );
-  Navigator.pop(context);
 }
