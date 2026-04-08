@@ -49,7 +49,7 @@ class ProductEditFormScreen extends StatelessWidget {
                 children: [
                   customText(
                     18,
-                    'Create New Product',
+                    'Edite Product',
                     fontWeight: FontWeight.bold,
                     webcolors: WebColors.textBlack,
                   ),

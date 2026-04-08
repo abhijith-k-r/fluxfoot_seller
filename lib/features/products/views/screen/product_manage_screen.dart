@@ -29,7 +29,7 @@ class ProductManageScreen extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.add),
-            label: const Text('Add New Brand'),
+            label: const Text('Add New Product'),
           ),
           // ! Products Table
           Expanded(child: ProductListTable()),

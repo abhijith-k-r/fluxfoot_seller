@@ -84,7 +84,7 @@ Container productsContents(
             child: Center(
               child: customText(
                 15,
-                DateFormat('yyyy-MM-dd  a').format(product.createdAt),
+                "${DateFormat.yMMMEd().format(product.createdAt)} ${DateFormat.j().format(product.createdAt)}",
               ),
             ),
           ),

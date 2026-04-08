@@ -23,6 +23,10 @@ class ProductAddFormScreen extends StatelessWidget {
       listen: false,
     );
 
+     Future.microtask(() {
+      productProvider.clearAllData();
+    });
+
     return Dialog(
       child: Container(
         width: size * 0.7,

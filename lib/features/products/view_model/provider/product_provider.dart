@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_nullable_for_final_variable_declarations
+// ignore_for_file: unnecessary_nullable_for_final_variable_declarations, prefer_final_fields
 
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -605,6 +605,32 @@ class ProductProvider extends ChangeNotifier {
     _selectedCategoryName = null;
     notifyListeners();
   }
+
+  void clearAllData() {
+    // Clear Controllers
+    _nameController.clear();
+    _descriptionController.clear();
+    _regPriceController.clear();
+    _salePriceController.clear();
+    _quantityController.clear();
+    _colorsController.clear();
+
+    // Reset Dropdowns
+    _selectedBrandId = null;
+    _selectedCategoryId = null;
+    _selectedBrandName = null;
+    _selectedCategoryName = null;
+    _selectedCategoryModel = null;
+
+    // Clear Images and Variants
+    _normalImageUrls.clear();
+    _threeDImageUrls.clear();
+    _dynamicFieldValues.clear();
+    productVariants.clear();
+
+    notifyListeners();
+  }
+
 
   @override
   void dispose() {
