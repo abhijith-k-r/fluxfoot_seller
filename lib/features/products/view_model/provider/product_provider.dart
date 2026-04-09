@@ -606,8 +606,8 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ! Comprehensive Clear for Add Product Form
   void clearAllData() {
-    // Clear Controllers
     _nameController.clear();
     _descriptionController.clear();
     _regPriceController.clear();
@@ -615,14 +615,12 @@ class ProductProvider extends ChangeNotifier {
     _quantityController.clear();
     _colorsController.clear();
 
-    // Reset Dropdowns
     _selectedBrandId = null;
     _selectedCategoryId = null;
     _selectedBrandName = null;
     _selectedCategoryName = null;
     _selectedCategoryModel = null;
 
-    // Clear Images and Variants
     _normalImageUrls.clear();
     _threeDImageUrls.clear();
     _dynamicFieldValues.clear();

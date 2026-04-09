@@ -7,6 +7,7 @@ import 'package:fluxfoot_seller/features/auth/views/screens/splash_screen.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
 import 'package:fluxfoot_seller/features/sidemenu/view_model/provider/drop_down_btn_provider.dart';
 import 'package:fluxfoot_seller/features/sidemenu/view_model/provider/side_menu_provider.dart';
+import 'package:fluxfoot_seller/features/dashboard/view_model/provider/dashboard_provider.dart';
 import 'package:fluxfoot_seller/firebase_options.dart';
 import 'package:provider/provider.dart';
 
@@ -40,6 +41,9 @@ class MYApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<ProductProvider>(
           create: (context) => ProductProvider(),
+        ),
+        ChangeNotifierProvider<DashboardProvider>(
+          create: (context) => DashboardProvider(),
         ),
       ],
 
