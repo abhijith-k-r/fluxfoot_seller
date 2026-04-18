@@ -1,16 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class OrderModel {
   final String id;
   final String customer;
   final String amount;
   final String status;
+  final String imageUrl;
+  final int quantity;
 
   OrderModel({
     required this.id,
     required this.customer,
     required this.amount,
     required this.status,
+    required this.imageUrl,
+    required this.quantity,
   });
 }
 
@@ -29,43 +35,143 @@ class TopProductModel {
 }
 
 class DashboardProvider extends ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-
-
   // KPI Metrics
-  String totalSales = "₹ 12,540";
-  String totalOrders = "350";
-  String totalProducts = "45";
-  String pendingOrders = "18";
+  String totalSales = "₹ 0";
+  String totalOrders = "0";
+  String totalProducts = "0";
+  String pendingOrders = "0";
+  List<TopProductModel> topProducts = [];
+  List<OrderModel> recentOrders = [];
+  List<double> monthlySales = List.filled(12, 0.0);
 
-  // Chart Data (Mock - simple y values)
-  final List<double> monthlySales = [1.2, 1.8, 1.4, 2.5, 2.0, 2.3, 2.8, 3.5, 2.9];
+  // Helper to format currency
+  final currencyFormatter = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹ ',
+  );
 
-  // Top Products
-  final List<TopProductModel> topProducts = [
-    TopProductModel(rank: "1", name: "Adidas Predator Boots", sales: "120 Sales", imageUrl: "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/77a330bf425848bbabae96901869e54d_9366/Predator_Accuracy.3_Low_Firm_Ground_Boots_Black_IE9439_01_standard.jpg"),
-    TopProductModel(rank: "2", name: "Real Madrid Jersey", sales: "95 Sales", imageUrl: "https://shop.realmadrid.com/cdn/shop/files/RMCFMT0124-01_1_800x.jpg"),
-    TopProductModel(rank: "3", name: "Nike Football", sales: "80 Sales", imageUrl: "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:heavy/f3f159a6-1246-466d-8e43-157999813f8f/pitch-football-Lp6Xf7.png"),
-  ];
-
-  // Recent Orders
-  final List<OrderModel> recentOrders = [
-    OrderModel(id: "#10234", customer: "John Smith", amount: "₹ 150.00", status: "Shipped"),
-    OrderModel(id: "#10233", customer: "Sarah Lee", amount: "₹ 85.00", status: "Processing"),
-    OrderModel(id: "#10232", customer: "Mike Johnson", amount: "₹ 220.00", status: "Delivered"),
-    OrderModel(id: "#10231", customer: "Emma Davis", amount: "₹ 65.00", status: "Cancelled"),
-  ];
-
-  void refreshDashboard() {
+  Future<void> fetchDashboardData(String sellerId) async {
     _isLoading = true;
     notifyListeners();
-    
-    // Simulate data fetch
-    Future.delayed(const Duration(seconds: 1), () {
+    try {
+      // 1. Fetch Orders for this seller
+      final ordersSnapshot = await _firestore
+          .collection('orders')
+          .where('sellerId', isEqualTo: sellerId)
+          .get();
+
+      double salesSum = 0;
+      int pendingCount = 0;
+      List<OrderModel> retrievedOrders = [];
+      Map<String, int> productSalesCount = {};
+      Map<String, String> topImagesMap = {};
+      Map<String, String> topNamesMap = {};
+      List<double> tempMonthlySales = List.filled(12, 0.0);
+
+      final currentYear = DateTime.now().year;
+
+      for (var doc in ordersSnapshot.docs) {
+        final data = doc.data();
+        double amount = (data['totalAmount'] ?? 0).toDouble();
+        String status = data['status'] ?? 'Pending';
+        int qty = data['quantity'] ?? 1;
+
+        salesSum += amount;
+        if (status == 'Placed' || status == 'Pending') {
+          pendingCount++;
+        }
+
+        // Aggregate Product Sales accurately
+        final productId = data['productId'] as String?;
+        if (productId != null) {
+          productSalesCount[productId] = (productSalesCount[productId] ?? 0) + qty;
+          topImagesMap[productId] = data['productImage'] ?? '';
+          topNamesMap[productId] = data['productName'] ?? 'Unknown';
+        }
+
+        // Aggregate Monthly Sales accurately
+        if (data['timestamp'] != null) {
+          final timestamp = data['timestamp'] as Timestamp;
+          final date = timestamp.toDate();
+          if (date.year == currentYear) {
+            tempMonthlySales[date.month - 1] += amount;
+          }
+        }
+
+        // Safely extract customer name from their shipping profile
+        final shippingInfo = data['shippingAddress'] as Map<String, dynamic>? ?? {};
+        final customerName = shippingInfo['name'] ?? shippingInfo['fullName'] ?? shippingInfo['firstName'] ?? 'Customer';
+
+        retrievedOrders.add(
+          OrderModel(
+            id: doc.id,
+            customer: customerName, 
+            amount: currencyFormatter.format(amount),
+            status: status,
+            imageUrl: data['productImage'] ?? '',
+            quantity: qty,
+          ),
+        );
+      }
+      monthlySales = tempMonthlySales;
+
+      // 2. Fetch Total Products
+      final productsSnapshot = await _firestore
+          .collection('products')
+          .where('sellerId', isEqualTo: sellerId)
+          .get();
+
+      // 3. Update Metrics
+      totalSales = currencyFormatter.format(salesSum);
+      totalOrders = ordersSnapshot.docs.length.toString();
+      totalProducts = productsSnapshot.docs.length.toString();
+      pendingOrders = pendingCount.toString();
+      
+      // Sort and Take Recent Orders (last 5, descending by timestamp theoretically)
+      recentOrders = retrievedOrders.reversed.take(5).toList();
+
+      // 4. Calculate True Top Products
+      final sortedProducts = productSalesCount.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      final top3 = sortedProducts.take(3).toList();
+      
+      topProducts.clear();
+      for (int i = 0; i < top3.length; i++) {
+        String accurateImg = topImagesMap[top3[i].key] ?? '';
+        if (accurateImg.isEmpty) accurateImg = "https://via.placeholder.com/150";
+
+        topProducts.add(TopProductModel(
+          rank: (i + 1).toString(),
+          name: topNamesMap[top3[i].key] ?? 'Unknown',
+          sales: "${top3[i].value} Sold",
+          imageUrl: accurateImg,
+        ));
+      }
+
+    } catch (e) {
+      debugPrint("Error fetching dashboard data: $e");
+    } finally {
       _isLoading = false;
       notifyListeners();
-    });
+    }
+  }
+
+  void updateLocalOrderStatus(String orderId, String newStatus) {
+    int index = recentOrders.indexWhere((order) => order.id == orderId);
+    if (index != -1) {
+      final oldOrder = recentOrders[index];
+      recentOrders[index] = OrderModel(
+        id: oldOrder.id,
+        customer: oldOrder.customer,
+        amount: oldOrder.amount,
+        status: newStatus,
+        imageUrl: oldOrder.imageUrl,
+        quantity: oldOrder.quantity,
+      );
+      notifyListeners();
+    }
   }
 }
-
