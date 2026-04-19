@@ -238,12 +238,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSalesOverview(BuildContext context) {
     final provider = Provider.of<DashboardProvider>(context);
-    
+
     // Scale Graph Y Max bounds dynamically
     double maxY = 1000;
     if (provider.monthlySales.isNotEmpty) {
-      double maxAmount = provider.monthlySales.reduce((curr, next) => curr > next ? curr : next);
-      maxY = maxAmount > 0 ? maxAmount * 1.2 : 1000; 
+      double maxAmount = provider.monthlySales.reduce(
+        (curr, next) => curr > next ? curr : next,
+      );
+      maxY = maxAmount > 0 ? maxAmount * 1.2 : 1000;
     }
 
     return Container(
@@ -266,11 +268,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               LineChartData(
                 gridData: FlGridData(
                   show: true,
-                  getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+                  getDrawingHorizontalLine: (value) =>
+                      FlLine(color: Colors.grey.shade200, strokeWidth: 1),
                 ),
                 titlesData: FlTitlesData(
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -278,9 +285,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       getTitlesWidget: (value, meta) {
                         if (value == 0) return const SizedBox();
                         if (value >= 1000) {
-                          return customText(11, '₹${(value / 1000).toStringAsFixed(1)}k', webcolors: Colors.grey);
+                          return customText(
+                            11,
+                            '₹${(value / 1000).toStringAsFixed(1)}k',
+                            webcolors: Colors.grey,
+                          );
                         }
-                        return customText(11, '₹${value.toInt()}', webcolors: Colors.grey);
+                        return customText(
+                          11,
+                          '₹${value.toInt()}',
+                          webcolors: Colors.grey,
+                        );
                       },
                     ),
                   ),
@@ -290,10 +305,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       reservedSize: 30,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
-                        const style = TextStyle(color: Colors.grey, fontSize: 11);
+                        const style = TextStyle(
+                          color: Colors.grey,
+                          fontSize: 11,
+                        );
                         final months = [
-                          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                          'Jan',
+                          'Feb',
+                          'Mar',
+                          'Apr',
+                          'May',
+                          'Jun',
+                          'Jul',
+                          'Aug',
+                          'Sep',
+                          'Oct',
+                          'Nov',
+                          'Dec',
                         ];
                         if (value >= 0 && value < 12) {
                           return Text(months[value.toInt()], style: style);
@@ -311,7 +339,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 lineBarsData: [
                   LineChartBarData(
                     spots: List.generate(12, (index) {
-                      return FlSpot(index.toDouble(), provider.monthlySales[index]);
+                      return FlSpot(
+                        index.toDouble(),
+                        provider.monthlySales[index],
+                      );
                     }),
                     isCurved: true,
                     color: const Color(0xFF43A047),
@@ -509,12 +540,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: order.imageUrl.isNotEmpty
-                            ? Image.network(order.imageUrl, width: 40, height: 40, fit: BoxFit.cover)
-                            : Container(width: 40, height: 40, color: Colors.grey.shade200, child: const Icon(Icons.image, size: 20)),
+                            ? Image.network(
+                                order.imageUrl,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                width: 40,
+                                height: 40,
+                                color: Colors.grey.shade200,
+                                child: const Icon(Icons.image, size: 20),
+                              ),
                       ),
                     ),
                     DataCell(
-                      customText(14, order.id.substring(0, 8).toUpperCase(), fontWeight: FontWeight.w500),
+                      customText(
+                        14,
+                        order.id.substring(0, 8).toUpperCase(),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     DataCell(customText(14, order.customer)),
                     DataCell(customText(14, order.amount)),
@@ -523,7 +568,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     DataCell(
                       ElevatedButton(
                         onPressed: () {
-                          _showUpdateStatusDialog(context, order.id, order.status);
+                          _showUpdateStatusDialog(
+                            context,
+                            order.id,
+                            order.status,
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF3265A1),
@@ -562,6 +611,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color = const Color(0xFF1E88E5);
         break;
       case 'Cancelled':
+      case 'Return Requested':
+      case 'Returned':
         color = const Color(0xFFD32F2F);
         break;
       default:
@@ -643,13 +694,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onPressed: () async {
                         final navigator = Navigator.of(context);
                         navigator.pop();
-                        
+
                         // Execute visually instantaneous local state flip FIRST!
-                        if(context.mounted) {
-                          final provider = Provider.of<DashboardProvider>(context, listen: false);
-                          provider.updateLocalOrderStatus(orderId, selectedStatus);
+                        if (context.mounted) {
+                          final provider = Provider.of<DashboardProvider>(
+                            context,
+                            listen: false,
+                          );
+                          provider.updateLocalOrderStatus(
+                            orderId,
+                            selectedStatus,
+                          );
                         }
-                        
+
                         // Push to backend asynchronously
                         await FirebaseFirestore.instance
                             .collection('orders')
@@ -658,11 +715,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               'status': selectedStatus,
                               'lastUpdated': FieldValue.serverTimestamp(),
                             });
-                            
-                        if(context.mounted) {
+
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Order status updated successfully!"),
+                              content: Text(
+                                "Order status updated successfully!",
+                              ),
                             ),
                           );
                         }

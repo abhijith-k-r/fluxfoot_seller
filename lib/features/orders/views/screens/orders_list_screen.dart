@@ -158,6 +158,8 @@ class OrdersListScreen extends StatelessWidget {
       'Shipped',
       'Delivered',
       'Cancelled',
+      'Return Requested',
+      'Returned'
     ];
     showModalBottomSheet(
       context: context,
