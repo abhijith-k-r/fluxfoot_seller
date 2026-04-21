@@ -1,6 +1,5 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -147,10 +146,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: size.width > 1200 ? 4 : (size.width > 800 ? 2 : 1),
-      crossAxisSpacing: 24,
-      mainAxisSpacing: 24,
-      childAspectRatio: 2.8,
+      crossAxisCount: size.width > 1200 ? 5 : (size.width > 800 ? 3 : 1),
+      crossAxisSpacing: 20,
+      mainAxisSpacing: 20,
+      childAspectRatio: 2.5,
       children: [
         _buildMetricCard(
           title: 'Total Sales',
@@ -171,10 +170,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: const Color(0xFFF4511E),
         ),
         _buildMetricCard(
-          title: 'Pending Orders',
-          value: provider.pendingOrders,
-          icon: Icons.access_time_filled,
+          title: 'Returned Products',
+          value: provider.returnedProductsCount,
+          icon: Icons.assignment_return,
           color: const Color(0xFFD32F2F),
+          onTap: () => _showReturnedProductsDialog(context, provider),
+        ),
+        _buildMetricCard(
+          title: 'Wallet Balance',
+          value: provider.walletBalance,
+          icon: Icons.account_balance_wallet,
+          color: const Color(0xFF673AB7), // Deep Purple for Wallet
         ),
       ],
     );
@@ -185,51 +191,177 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String value,
     required IconData icon,
     required Color color,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: Colors.white, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  customText(
+                    16,
+                    title,
+                    webcolors: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  const SizedBox(height: 4),
+                  customText(
+                    24,
+                    value,
+                    webcolors: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: Colors.white, size: 32),
-          ),
-          const SizedBox(width: 16),
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                customText(
-                  16,
-                  title,
-                  webcolors: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
+    );
+  }
+
+  void _showReturnedProductsDialog(
+    BuildContext context,
+    DashboardProvider provider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Returned Products Detail"),
+        content: SizedBox(
+          width: 500,
+          child: provider.returnedOrdersList.isEmpty
+              ? const Center(child: Text("No returned products found."))
+              : ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: provider.returnedOrdersList.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final order = provider.returnedOrdersList[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: order.imageUrl.isNotEmpty
+                                    ? Image.network(
+                                        order.imageUrl,
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        width: 40,
+                                        height: 40,
+                                        color: Colors.grey.shade200,
+                                      ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      order.customer,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Order ID: ${order.id.substring(0, 8).toUpperCase()}",
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                order.amount,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.shade100),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Reason for Return:",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                Text(
+                                  order.returnReason,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Status: ${order.status}",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 4),
-                customText(
-                  24,
-                  value,
-                  webcolors: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ],
-            ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
           ),
         ],
       ),
@@ -524,14 +656,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     webcolors: Colors.grey.shade700,
                   ),
                 ),
-                DataColumn(
-                  label: customText(
-                    14,
-                    'Action',
-                    fontWeight: FontWeight.bold,
-                    webcolors: Colors.grey.shade700,
-                  ),
-                ),
               ],
               rows: provider.recentOrders.map((order) {
                 return DataRow(
@@ -565,29 +689,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     DataCell(customText(14, order.amount)),
                     DataCell(customText(14, "x${order.quantity}")),
                     DataCell(_buildStatusBadge(order.status)),
-                    DataCell(
-                      ElevatedButton(
-                        onPressed: () {
-                          _showUpdateStatusDialog(
-                            context,
-                            order.id,
-                            order.status,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3265A1),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        child: const Text('View'),
-                      ),
-                    ),
                   ],
                 );
               }).toList(),
@@ -631,119 +732,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         webcolors: Colors.white,
         fontWeight: FontWeight.w500,
       ),
-    );
-  }
-
-  void _showUpdateStatusDialog(
-    BuildContext context,
-    String orderId,
-    String currentStatus,
-  ) {
-    String selectedStatus = currentStatus;
-    final List<String> statuses = [
-      'Placed',
-      'Processing',
-      'Shipped',
-      'Delivered',
-      'Cancelled',
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Update Order Status",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 10,
-                    children: statuses.map((status) {
-                      bool isSelected = selectedStatus == status;
-                      return ChoiceChip(
-                        label: Text(status),
-                        selected: isSelected,
-                        selectedColor: Colors.deepPurple,
-                        labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
-                        ),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setModalState(() => selectedStatus = status);
-                          }
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final navigator = Navigator.of(context);
-                        navigator.pop();
-
-                        // Execute visually instantaneous local state flip FIRST!
-                        if (context.mounted) {
-                          final provider = Provider.of<DashboardProvider>(
-                            context,
-                            listen: false,
-                          );
-                          provider.updateLocalOrderStatus(
-                            orderId,
-                            selectedStatus,
-                          );
-                        }
-
-                        // Push to backend asynchronously
-                        await FirebaseFirestore.instance
-                            .collection('orders')
-                            .doc(orderId)
-                            .update({
-                              'status': selectedStatus,
-                              'lastUpdated': FieldValue.serverTimestamp(),
-                            });
-
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "Order status updated successfully!",
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        "Confirm Update",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
     );
   }
 }

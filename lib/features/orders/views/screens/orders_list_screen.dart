@@ -3,7 +3,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluxfoot_seller/core/themes/app_theme.dart';
 import 'package:fluxfoot_seller/core/widgets/custom_text.dart';
 
 class OrdersListScreen extends StatelessWidget {
@@ -28,7 +27,7 @@ class OrdersListScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('orders')
             .where('sellerId', isEqualTo: sellerId)
-            // .orderBy('timestamp', descending: true) // Requires an index in Firebase!
+            // .orderBy('timestamp', descending: true) // REMOVED TO FIX INDEX ERROR
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -41,95 +40,100 @@ class OrdersListScreen extends StatelessWidget {
             return const Center(child: Text('No orders found.'));
           }
 
-          final orders = snapshot.data!.docs;
+          final List<QueryDocumentSnapshot> orders = snapshot.data!.docs;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: orders.length,
-            itemBuilder: (context, index) {
-              final doc = orders[index];
-              final data = doc.data() as Map<String, dynamic>;
+          // Manual Sorting to avoid Index error but keep UX
+          orders.sort((a, b) {
+            Timestamp? tA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+            Timestamp? tB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+            if (tA == null) return 1;
+            if (tB == null) return -1;
+            return tB.compareTo(tA);
+          });
 
-              return _buildOrderCard(context, doc.id, data);
-            },
-          );
-        },
-      ),
-    );
-  }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText(18, 'All Managed Orders', fontWeight: FontWeight.bold),
+                  const SizedBox(height: 24),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columnSpacing: 40,
+                      headingRowColor: WidgetStateProperty.all(const Color(0xFFF8F9FA)),
+                      columns: [
+                        DataColumn(label: customText(14, 'Image', fontWeight: FontWeight.bold)),
+                        DataColumn(label: customText(14, 'Order ID', fontWeight: FontWeight.bold)),
+                        DataColumn(label: customText(14, 'Product', fontWeight: FontWeight.bold)),
+                        DataColumn(label: customText(14, 'Qty', fontWeight: FontWeight.bold)),
+                        DataColumn(label: customText(14, 'Amount', fontWeight: FontWeight.bold)),
+                        DataColumn(label: customText(14, 'Status', fontWeight: FontWeight.bold)),
+                        DataColumn(label: customText(14, 'Action', fontWeight: FontWeight.bold)),
+                      ],
+                      rows: orders.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        final orderId = doc.id;
+                        final status = data['status'] ?? 'Placed';
+                        final amount = data['totalAmount']?.toString() ?? '0';
 
-  Widget _buildOrderCard(BuildContext context, String orderId, Map<String, dynamic> data) {
-    final status = data['status'] ?? 'Placed';
-    final productImg = data['productImage'] ?? '';
-    final productName = data['productName'] ?? 'Unknown Product';
-    final totalAmount = data['totalAmount']?.toString() ?? '0.0';
-    final qty = data['quantity']?.toString() ?? '1';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                customText(14, 'Order ID: ${orderId.substring(0, 8).toUpperCase()}', fontWeight: FontWeight.bold),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _getStatusColor(status)),
+                        return DataRow(
+                          cells: [
+                            DataCell(
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: data['productImage'] != null && data['productImage'].toString().isNotEmpty
+                                    ? Image.network(data['productImage'], width: 40, height: 40, fit: BoxFit.cover)
+                                    : Container(width: 40, height: 40, color: Colors.grey.shade200, child: const Icon(Icons.image, size: 20)),
+                              ),
+                            ),
+                            DataCell(customText(14, orderId.substring(0, 8).toUpperCase(), fontWeight: FontWeight.bold)),
+                            DataCell(SizedBox(width: 150, child: customText(14, data['productName'] ?? 'Unknown', ))),
+                            DataCell(customText(14, "x${data['quantity'] ?? 1}")),
+                            DataCell(customText(14, "₹$amount", fontWeight: FontWeight.bold)),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _getStatusColor(status).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: customText(12, status, webcolors: _getStatusColor(status), fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            DataCell(
+                              ElevatedButton(
+                                onPressed: () => _showUpdateStatusDialog(context, orderId, status),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF673AB7),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                ),
+                                child: const Text('Update'),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
-                  child: customText(12, status, webcolors: _getStatusColor(status), fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const Divider(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: productImg.isNotEmpty
-                      ? Image.network(productImg, width: 80, height: 80, fit: BoxFit.cover)
-                      : Container(width: 80, height: 80, color: Colors.grey.shade300, child: const Icon(Icons.image)),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      customText(16, productName, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 4),
-                      customText(14, 'Qty: $qty', webcolors: Colors.grey.shade700),
-                      const SizedBox(height: 4),
-                      customText(16, '₹ $totalAmount', fontWeight: FontWeight.bold, webcolors: WebColors.succesGreen),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: () {
-                  _showUpdateStatusDialog(context, orderId, status);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: WebColors.succesGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('Update Status'),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -137,11 +141,18 @@ class OrdersListScreen extends StatelessWidget {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Placed':
-      case 'Processing': return Colors.orange;
-      case 'Shipped': return Colors.blue;
-      case 'Delivered': return Colors.green;
-      case 'Cancelled': return Colors.red;
-      default: return Colors.grey;
+      case 'Processing':
+        return Colors.orange;
+      case 'Shipped':
+        return Colors.blue;
+      case 'Delivered':
+        return Colors.green;
+      case 'Cancelled':
+      case 'Return Requested':
+      case 'Returned':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -151,16 +162,33 @@ class OrdersListScreen extends StatelessWidget {
     String currentStatus,
   ) {
     String selectedStatus = currentStatus;
-    // Professional status sequence
-    final List<String> statuses = [
+
+    // --- SMART AUTHENTIC SELLER LOGIC ---
+    List<String> statuses = [
       'Placed',
       'Processing',
       'Shipped',
       'Delivered',
       'Cancelled',
-      'Return Requested',
-      'Returned'
     ];
+
+    if (currentStatus == 'Return Requested') {
+      statuses = ['Return Requested', 'Return Approved', 'Return Rejected'];
+    } else if (currentStatus == 'Return Approved') {
+      statuses = [
+        'Return Approved',
+        'Item Returned',
+      ]; // Seller clicked when it arrives at warehouse
+    } else if ([
+      'Item Returned',
+      'Refund Processed',
+      'Return Rejected',
+    ].contains(currentStatus)) {
+      statuses = [
+        currentStatus,
+      ]; // LOCKED! Sellers cannot undo this phase. Admin takes over!
+    }
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -176,9 +204,17 @@ class OrdersListScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Update Order Status",
+                    "Manage Order Status",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
+                  if (statuses.length == 1)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        "This order is currently locked and awaiting Admin Financial review.",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
                   const SizedBox(height: 20),
                   Wrap(
                     spacing: 10,
@@ -205,9 +241,7 @@ class OrdersListScreen extends StatelessWidget {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () async {
-                        final navigator = Navigator.of(context);
-                        navigator.pop();
-                        
+                        Navigator.pop(context);
                         await FirebaseFirestore.instance
                             .collection('orders')
                             .doc(orderId)
@@ -215,8 +249,6 @@ class OrdersListScreen extends StatelessWidget {
                               'status': selectedStatus,
                               'lastUpdated': FieldValue.serverTimestamp(),
                             });
-                        // No snackbar here since context might unmount, 
-                        // and it flips visually instantly due to StreamBuilder tracking!
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,

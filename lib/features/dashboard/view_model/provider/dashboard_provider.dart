@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class OrderModel {
   final String id;
@@ -9,6 +10,7 @@ class OrderModel {
   final String status;
   final String imageUrl;
   final int quantity;
+  final String returnReason;
 
   OrderModel({
     required this.id,
@@ -17,6 +19,7 @@ class OrderModel {
     required this.status,
     required this.imageUrl,
     required this.quantity,
+    this.returnReason = "No reason provided",
   });
 }
 
@@ -42,10 +45,13 @@ class DashboardProvider extends ChangeNotifier {
   String totalSales = "₹ 0";
   String totalOrders = "0";
   String totalProducts = "0";
-  String pendingOrders = "0";
+  String returnedProductsCount = "0";
+  String walletBalance = "₹ 0";
   List<TopProductModel> topProducts = [];
   List<OrderModel> recentOrders = [];
+  List<OrderModel> returnedOrdersList = [];
   List<double> monthlySales = List.filled(12, 0.0);
+  StreamSubscription? _walletSubscription;
 
   // Helper to format currency
   final currencyFormatter = NumberFormat.currency(
@@ -64,8 +70,9 @@ class DashboardProvider extends ChangeNotifier {
           .get();
 
       double salesSum = 0;
-      int pendingCount = 0;
+      int returnCount = 0;
       List<OrderModel> retrievedOrders = [];
+      List<OrderModel> returnedItemsList = [];
       Map<String, int> productSalesCount = {};
       Map<String, String> topImagesMap = {};
       Map<String, String> topNamesMap = {};
@@ -75,14 +82,13 @@ class DashboardProvider extends ChangeNotifier {
 
       for (var doc in ordersSnapshot.docs) {
         final data = doc.data();
-        double amount = (data['totalAmount'] ?? 0).toDouble();
+        double amount = (data['totalAmount'] is String) 
+            ? double.tryParse(data['totalAmount']) ?? 0.0 
+            : (data['totalAmount'] ?? 0).toDouble();
         String status = data['status'] ?? 'Pending';
         int qty = data['quantity'] ?? 1;
 
         salesSum += amount;
-        if (status == 'Placed' || status == 'Pending') {
-          pendingCount++;
-        }
 
         // Aggregate Product Sales accurately
         final productId = data['productId'] as String?;
@@ -105,16 +111,28 @@ class DashboardProvider extends ChangeNotifier {
         final shippingInfo = data['shippingAddress'] as Map<String, dynamic>? ?? {};
         final customerName = shippingInfo['name'] ?? shippingInfo['fullName'] ?? shippingInfo['firstName'] ?? 'Customer';
 
-        retrievedOrders.add(
-          OrderModel(
-            id: doc.id,
-            customer: customerName, 
-            amount: currencyFormatter.format(amount),
-            status: status,
-            imageUrl: data['productImage'] ?? '',
-            quantity: qty,
-          ),
+        final order = OrderModel(
+          id: doc.id,
+          customer: customerName, 
+          amount: currencyFormatter.format(amount),
+          status: status,
+          imageUrl: data['productImage'] ?? '',
+          quantity: qty,
+          returnReason: data['returnReason'] ?? 'No reason provided',
         );
+
+        retrievedOrders.add(order);
+
+        // Check if it's a returned product
+        if ([
+          'Return Requested',
+          'Return Approved',
+          'Item Returned',
+          'Refund Processed',
+        ].contains(status)) {
+          returnCount++;
+          returnedItemsList.add(order);
+        }
       }
       monthlySales = tempMonthlySales;
 
@@ -128,8 +146,23 @@ class DashboardProvider extends ChangeNotifier {
       totalSales = currencyFormatter.format(salesSum);
       totalOrders = ordersSnapshot.docs.length.toString();
       totalProducts = productsSnapshot.docs.length.toString();
-      pendingOrders = pendingCount.toString();
-      
+      returnedProductsCount = returnCount.toString();
+      returnedOrdersList = returnedItemsList;
+
+      // 4. Set up Real-time Wallet Stream (if not already listening)
+      _walletSubscription?.cancel(); // Cancel old one if exists
+      _walletSubscription = _firestore
+          .collection('sellers')
+          .doc(sellerId)
+          .snapshots()
+          .listen((doc) {
+            if (doc.exists) {
+              double balance = (doc.data()?['walletBalance'] ?? 0.0).toDouble();
+              walletBalance = currencyFormatter.format(balance);
+              notifyListeners(); // This allows the UI to update INSTANTLY when admin releases payment
+            }
+          });
+
       // Sort and Take Recent Orders (last 5, descending by timestamp theoretically)
       recentOrders = retrievedOrders.reversed.take(5).toList();
 
@@ -137,20 +170,22 @@ class DashboardProvider extends ChangeNotifier {
       final sortedProducts = productSalesCount.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
       final top3 = sortedProducts.take(3).toList();
-      
+
       topProducts.clear();
       for (int i = 0; i < top3.length; i++) {
         String accurateImg = topImagesMap[top3[i].key] ?? '';
-        if (accurateImg.isEmpty) accurateImg = "https://via.placeholder.com/150";
+        if (accurateImg.isEmpty)
+          accurateImg = "https://via.placeholder.com/150";
 
-        topProducts.add(TopProductModel(
-          rank: (i + 1).toString(),
-          name: topNamesMap[top3[i].key] ?? 'Unknown',
-          sales: "${top3[i].value} Sold",
-          imageUrl: accurateImg,
-        ));
+        topProducts.add(
+          TopProductModel(
+            rank: (i + 1).toString(),
+            name: topNamesMap[top3[i].key] ?? 'Unknown',
+            sales: "${top3[i].value} Sold",
+            imageUrl: accurateImg,
+          ),
+        );
       }
-
     } catch (e) {
       debugPrint("Error fetching dashboard data: $e");
     } finally {
@@ -170,6 +205,7 @@ class DashboardProvider extends ChangeNotifier {
         status: newStatus,
         imageUrl: oldOrder.imageUrl,
         quantity: oldOrder.quantity,
+        returnReason: oldOrder.returnReason,
       );
       notifyListeners();
     }

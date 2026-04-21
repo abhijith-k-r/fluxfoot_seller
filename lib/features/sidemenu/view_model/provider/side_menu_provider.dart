@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/features/dashboard/views/screens/dashboard_screen.dart';
+import 'package:fluxfoot_seller/features/orders/views/screens/orders_list_screen.dart';
 import 'package:fluxfoot_seller/features/products/views/screen/product_manage_screen.dart';
 import 'package:fluxfoot_seller/features/sidemenu/model/sidemenu_item_model.dart';
 import 'package:fluxfoot_seller/features/sidemenu/views/widgets/build_sidemenu_content.dart';
@@ -43,7 +44,7 @@ class SideMenuProvider extends ChangeNotifier {
       case 1:
         return ProductManageScreen();
       case 2:
-        return buildOrdersContent();
+        return OrdersListScreen();
       default:
         return buildDashboardContent();
     }
