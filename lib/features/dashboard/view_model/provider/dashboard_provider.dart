@@ -169,13 +169,14 @@ class DashboardProvider extends ChangeNotifier {
       // 4. Calculate True Top Products
       final sortedProducts = productSalesCount.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      final top3 = sortedProducts.take(3).toList();
+      final top3 = sortedProducts.take(5).toList();
 
       topProducts.clear();
       for (int i = 0; i < top3.length; i++) {
         String accurateImg = topImagesMap[top3[i].key] ?? '';
-        if (accurateImg.isEmpty)
+        if (accurateImg.isEmpty) {
           accurateImg = "https://via.placeholder.com/150";
+        }
 
         topProducts.add(
           TopProductModel(

@@ -197,7 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(8),
@@ -221,24 +221,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  customText(
-                    16,
-                    title,
-                    webcolors: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  const SizedBox(height: 4),
-                  customText(
-                    24,
-                    value,
-                    webcolors: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    customText(
+                      16,
+                      title,
+                      webcolors: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    const SizedBox(height: 4),
+                    customText(
+                      24,
+                      value,
+                      webcolors: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

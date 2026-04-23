@@ -249,6 +249,28 @@ class OrdersListScreen extends StatelessWidget {
                               'status': selectedStatus,
                               'lastUpdated': FieldValue.serverTimestamp(),
                             });
+
+                        // --- NEW: Trigger In-App Notification (Firestore Based) ---
+                        try {
+                          final orderDoc = await FirebaseFirestore.instance.collection('orders').doc(orderId).get();
+                          final customerId = orderDoc.data()?['userId'];
+                          final productName = orderDoc.data()?['productName'] ?? 'Product';
+                          
+                          if (customerId != null) {
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(customerId)
+                                .collection('notifications')
+                                .add({
+                              'title': "Order Status Updated",
+                              'body': "Your order for '$productName' (#${orderId.substring(0, 8).toUpperCase()}) is now $selectedStatus",
+                              'isRead': false,
+                              'createdAt': FieldValue.serverTimestamp(),
+                            });
+                          }
+                        } catch (e) {
+                          debugPrint("Error triggering notification: $e");
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
