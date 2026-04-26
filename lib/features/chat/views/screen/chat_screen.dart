@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxfoot_seller/core/services/chat_service.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
+import 'package:fluxfoot_seller/features/chat/view_model/chat_provider.dart';
+import 'package:provider/provider.dart';
 
 class SellerChatDashboard extends StatelessWidget {
   const SellerChatDashboard({super.key});
@@ -9,7 +13,7 @@ class SellerChatDashboard extends StatelessWidget {
     return Row(
       children: [
         // 1. Recent Chats Sidebar (320px)
-        _buildRecentChatsSidebar(),
+        _buildRecentChatsSidebar(context),
 
         // 2. Main Chat Window (Expanded)
         Expanded(child: _buildMainChatWindow()),
@@ -17,52 +21,79 @@ class SellerChatDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentChatsSidebar() {
-    return Container(
+  Widget _buildRecentChatsSidebar(BuildContext context) {
+    final ChatService chatService = ChatService();
+
+    final String sellerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final chatProvider = Provider.of<SellerChatProvider>(context);
+    return SizedBox(
       width: 320,
-      decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: WebColors.bgWiteShade)),
+      child: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: chatService.getSellerChats(sellerId),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return SizedBox(
+              width: 5,
+              height: 30,
+              child: Center(child: const CircularProgressIndicator()),
+            );
+          }
+
+          final chats = snapshot.data!;
+          return ListView.builder(
+            itemCount: chats.length,
+            itemBuilder: (context, index) {
+              final chat = chats[index];
+              bool isActive = chatProvider.selectedChatId == chat['chatId'];
+              return InkWell(
+                onTap: () => chatProvider.selectChat(chat),
+                child: _buildChatListItem(isActive),
+              );
+            },
+          );
+        },
       ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Recent Chats",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Icon(Icons.search, color: WebColors.iconGrey),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  children: [
-                    _filterChip("All", isActive: true),
-                    const SizedBox(width: 8),
-                    _filterChip("Unread"),
-                    const SizedBox(width: 8),
-                    _filterChip("Resolved"),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 5,
-              itemBuilder: (context, index) => _buildChatListItem(index == 0),
-            ),
-          ),
-        ],
-      ),
+
+      // Column(
+      //   children: [
+      //     Padding(
+      //       padding: const EdgeInsets.all(20),
+      //       child: Column(
+      //         children: [
+      //           Row(
+      //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //             children: [
+      //               const Text(
+      //                 "Recent Chats",
+      //                 style: TextStyle(
+      //                   fontSize: 20,
+      //                   fontWeight: FontWeight.bold,
+      //                 ),
+      //               ),
+      //               Icon(Icons.search, color: WebColors.iconGrey),
+      //             ],
+      //           ),
+      //           const SizedBox(height: 15),
+      //           Row(
+      //             children: [
+      //               _filterChip("All", isActive: true),
+      //               const SizedBox(width: 8),
+      //               _filterChip("Unread"),
+      //               const SizedBox(width: 8),
+      //               _filterChip("Resolved"),
+      //             ],
+      //           ),
+      //         ],
+      //       ),
+      //     ),
+      //     Expanded(
+      //       child: ListView.builder(
+      //         itemCount: 5,
+      //         itemBuilder: (context, index) => _buildChatListItem(index == 0),
+      //       ),
+      //     ),
+      //   ],
+      // ),
     );
   }
 
@@ -148,24 +179,24 @@ class SellerChatDashboard extends StatelessWidget {
     );
   }
 
-  // --- Helper Widgets ---
-  Widget _filterChip(String label, {bool isActive = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isActive ? WebColors.buttonPurple : WebColors.bgWiteShade,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isActive ? Colors.white : Colors.black,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+  // // --- Helper Widgets ---
+  // Widget _filterChip(String label, {bool isActive = false}) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  //     decoration: BoxDecoration(
+  //       color: isActive ? WebColors.buttonPurple : WebColors.bgWiteShade,
+  //       borderRadius: BorderRadius.circular(20),
+  //     ),
+  //     child: Text(
+  //       label,
+  //       style: TextStyle(
+  //         color: isActive ? Colors.white : Colors.black,
+  //         fontSize: 12,
+  //         fontWeight: FontWeight.bold,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildChatListItem(bool isActive) {
     return Container(

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/features/auth/view_model/provider/keyboard_provider.dart';
 import 'package:fluxfoot_seller/features/auth/views/screens/splash_screen.dart';
+import 'package:fluxfoot_seller/features/chat/view_model/chat_provider.dart';
 import 'package:fluxfoot_seller/features/products/view_model/provider/product_provider.dart';
 import 'package:fluxfoot_seller/features/sidemenu/view_model/provider/drop_down_btn_provider.dart';
 import 'package:fluxfoot_seller/features/sidemenu/view_model/provider/side_menu_provider.dart';
@@ -44,6 +45,9 @@ class MYApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<DashboardProvider>(
           create: (context) => DashboardProvider(),
+        ),
+         ChangeNotifierProvider<SellerChatProvider>(
+          create: (context) => SellerChatProvider(),
         ),
       ],
 
