@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxfoot_seller/features/chat/views/screen/chat_screen.dart';
 import 'package:fluxfoot_seller/features/dashboard/views/screens/dashboard_screen.dart';
 import 'package:fluxfoot_seller/features/orders/views/screens/orders_list_screen.dart';
 import 'package:fluxfoot_seller/features/products/views/screen/product_manage_screen.dart';
@@ -29,6 +30,11 @@ class SideMenuProvider extends ChangeNotifier {
       icon: Icons.shopping_cart,
       pageTitle: "Orders Management",
     ),
+     SideMenuItems(
+      title: "Conversations",
+      icon: Icons.chat,
+      pageTitle: "Order Support",
+    ),
   ];
 
   void onMenuItemTap(int index) {
@@ -45,6 +51,8 @@ class SideMenuProvider extends ChangeNotifier {
         return ProductManageScreen();
       case 2:
         return OrdersListScreen();
+      case 3:
+        return SellerChatDashboard();
       default:
         return buildDashboardContent();
     }
