@@ -6,7 +6,10 @@ class MessageModel {
   final DateTime timestamp;
   final String type; // 'text' or 'image'
 
+  final String? id;
+
   MessageModel({
+    this.id,
     required this.senderId,
     required this.text,
     required this.timestamp,
@@ -22,7 +25,8 @@ class MessageModel {
   };
 
   // Create Object from Firestore Map
-  factory MessageModel.fromMap(Map<String, dynamic> map) => MessageModel(
+  factory MessageModel.fromMap(Map<String, dynamic> map, String id) => MessageModel(
+    id: id,
     senderId: map['senderId'] ?? '',
     text: map['text'] ?? '',
     timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),

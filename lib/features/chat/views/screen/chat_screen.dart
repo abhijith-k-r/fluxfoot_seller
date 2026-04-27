@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxfoot_seller/core/services/chat_service.dart';
 import 'package:fluxfoot_seller/core/themes/app_theme.dart';
+import 'package:fluxfoot_seller/features/chat/model/message_model.dart';
 import 'package:fluxfoot_seller/features/chat/view_model/chat_provider.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class SellerChatDashboard extends StatelessWidget {
@@ -16,7 +19,7 @@ class SellerChatDashboard extends StatelessWidget {
         _buildRecentChatsSidebar(context),
 
         // 2. Main Chat Window (Expanded)
-        Expanded(child: _buildMainChatWindow()),
+        Expanded(child: _buildMainChatWindow(context)),
       ],
     );
   }
@@ -31,15 +34,24 @@ class SellerChatDashboard extends StatelessWidget {
       child: StreamBuilder<List<Map<String, dynamic>>>(
         stream: chatService.getSellerChats(sellerId),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return SizedBox(
-              width: 5,
-              height: 30,
-              child: Center(child: const CircularProgressIndicator()),
+          if (snapshot.hasError) {
+            Center(child: Text("Error: ${snapshot.error}"));
+          }
+          // if (!snapshot.hasData) {
+          //   return SizedBox(
+          //     width: 5,
+          //     height: 30,
+          //     child: Center(child: const CircularProgressIndicator()),
+          //   );
+          // }
+
+          final chats = snapshot.data ?? [];
+          if (chats.isEmpty) {
+            return const Center(
+              child: Text("No active customer support chats."),
             );
           }
 
-          final chats = snapshot.data!;
           return ListView.builder(
             itemCount: chats.length,
             itemBuilder: (context, index) {
@@ -47,7 +59,7 @@ class SellerChatDashboard extends StatelessWidget {
               bool isActive = chatProvider.selectedChatId == chat['chatId'];
               return InkWell(
                 onTap: () => chatProvider.selectChat(chat),
-                child: _buildChatListItem(isActive),
+                child: _buildChatListItem(chat, isActive),
               );
             },
           );
@@ -97,84 +109,177 @@ class SellerChatDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildMainChatWindow() {
+  Widget _buildMainChatWindow(BuildContext context) {
+    final chatProvider = Provider.of<SellerChatProvider>(context);
+    final String sellerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final ChatService chatService = ChatService();
+
+    if (chatProvider.selectedChatId == null) {
+      return const Center(
+        child: Text("Select a conversation to start chatting"),
+      );
+    }
+
+    final chatData = chatProvider.selectedOrderContext!;
+    final participants = List<String>.from(chatData['participants'] ?? []);
+    final userId =
+        participants.firstWhere((id) => id != sellerId, orElse: () => '');
+
     return Column(
       children: [
         // Chat Header
-        Container(
-          height: 64,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: WebColors.bgWiteShade)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Customer: John Doe",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: WebColors.succesGreen,
-                          shape: BoxShape.circle,
-                        ),
+        StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('chats')
+              .doc(chatProvider.selectedChatId!)
+              .snapshots(),
+          builder: (context, snapshot) {
+            final chatId = chatProvider.selectedChatId!;
+            final orderId = chatId.replaceAll('chat_', '');
+
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('orders')
+                  .doc(orderId)
+                  .get(),
+              builder: (context, orderSnapshot) {
+                String customerName = "User";
+                String productName = "N/A";
+
+                final chatData = snapshot.hasData
+                    ? snapshot.data!.data() as Map<String, dynamic>?
+                    : null;
+                final orderData = orderSnapshot.hasData
+                    ? orderSnapshot.data!.data() as Map<String, dynamic>?
+                    : null;
+
+                // Priority for Product Name: Chat Doc > Order Doc
+                productName = chatData?['productName'] ??
+                    orderData?['productName'] ??
+                    "N/A";
+
+                return FutureBuilder<DocumentSnapshot>(
+                  future: orderData != null
+                      ? FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(orderData['userId'])
+                          .get()
+                      : null,
+                  builder: (context, userSnapshot) {
+                    final userData = userSnapshot.hasData
+                        ? userSnapshot.data!.data() as Map<String, dynamic>?
+                        : null;
+
+                    // Priority for Customer Name: Chat Doc > User Doc
+                    customerName = chatData?['customerName'] ??
+                        userData?['name'] ??
+                        "User";
+
+                    return Container(
+                      height: 85,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: WebColors.bgWiteShade)),
                       ),
-                      const SizedBox(width: 5),
-                      const Text(
-                        "Online",
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Customer: $customerName",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              Text(
+                                "Product: $productName",
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey),
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: WebColors.succesGreen,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  const Text(
+                                    "Online",
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.receipt_long, size: 18),
+                            label: const Text("View Order Details"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: WebColors.buttonPurple,
+                              side: BorderSide(color: WebColors.bgWiteShade),
+                              elevation: 0,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.receipt_long, size: 18),
-                label: const Text("View Order Details"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: WebColors.buttonPurple,
-                  side: BorderSide(color: WebColors.bgWiteShade),
-                  elevation: 0,
-                ),
-              ),
-            ],
-          ),
+                    );
+                  },
+                );
+              },
+            );
+          },
         ),
         // Chat Feed
         Expanded(
           child: Container(
             color: Colors.grey.shade50,
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                _buildMessageBubble(
-                  "Hello! I'm reaching out about Order #88291. It says delivered, but I haven't received it yet.",
-                  "12:45 PM",
-                  isMe: false,
-                ),
-                _buildInChatProductCard(),
-                _buildMessageBubble(
-                  "Hello John! I'm sorry to hear that. I'm checking the GPS coordinates of the delivery now. Just a moment.",
-                  "12:48 PM",
-                  isMe: true,
-                ),
-              ],
+            child: StreamBuilder<List<MessageModel>>(
+              stream: chatService.getMessages(chatProvider.selectedChatId!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final messages = snapshot.data ?? [];
+                if (messages.isEmpty) {
+                  return const Center(child: Text("No messages yet."));
+                }
+
+                return ListView.builder(
+                  reverse: true,
+                  padding: const EdgeInsets.all(20),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = messages[index];
+                    return GestureDetector(
+                      onLongPress: msg.senderId == sellerId
+                          ? () => _showDeleteDialog(
+                              context, chatProvider.selectedChatId!, msg.id!)
+                          : null,
+                      child: _buildMessageBubble(
+                        msg.text,
+                        DateFormat('hh:mm a').format(msg.timestamp),
+                        isMe: msg.senderId == sellerId,
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ),
         // Input Area
-        _buildChatInput(),
+        _buildChatInput(chatProvider.selectedChatId!, userId, sellerId),
       ],
     );
   }
@@ -198,7 +303,7 @@ class SellerChatDashboard extends StatelessWidget {
   //   );
   // }
 
-  Widget _buildChatListItem(bool isActive) {
+  Widget _buildChatListItem(Map<String, dynamic> chat, bool isActive) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -212,7 +317,11 @@ class SellerChatDashboard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(backgroundColor: WebColors.bgWiteShade, radius: 24),
+          CircleAvatar(
+            backgroundColor: WebColors.bgWiteShade,
+            radius: 24,
+            child: const Icon(Icons.person, color: Colors.grey),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -221,10 +330,10 @@ class SellerChatDashboard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        "John Doe - #88291",
-                        style: TextStyle(
+                        "Order #${chat['orderId']?.toString().toUpperCase() ?? 'N/A'}",
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -232,14 +341,17 @@ class SellerChatDashboard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "12:45 PM",
+                      chat['lastTimestamp'] != null
+                          ? DateFormat('hh:mm a').format(
+                              (chat['lastTimestamp'] as Timestamp).toDate())
+                          : "",
                       style: TextStyle(fontSize: 11, color: WebColors.iconGrey),
                     ),
                   ],
                 ),
-                const Text(
-                  "Hi, I'm checking on the delivery...",
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                Text(
+                  chat['lastMessage'] ?? "No messages yet",
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -284,78 +396,117 @@ class SellerChatDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildChatInput() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          border: Border.all(color: WebColors.bgWiteShade),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.add_circle),
-              color: WebColors.iconGrey,
-              onPressed: () {},
-            ),
-            const Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "Type your message...",
-                  border: InputBorder.none,
-                ),
+  // lib/features/chat/views/screens/seller_chat_dashboard.dart
+
+  Widget _buildChatInput(String chatId, String userId, String sellerId) {
+    final TextEditingController messageController = TextEditingController();
+    final chatService = ChatService();
+    Future<void> onSend() async {
+      if (messageController.text.trim().isNotEmpty) {
+        // 1. Create the Message
+        final sellerMessage = MessageModel(
+          senderId: sellerId,
+          text: messageController.text.trim(),
+          timestamp: DateTime.now(),
+        );
+
+        // 2. Clear input
+        messageController.clear();
+
+        // 3. Send via ChatService
+        await chatService.sendMessage(
+          chatId: chatId,
+          message: sellerMessage,
+          sellerId: sellerId,
+          userId: userId,
+        );
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // ... (your existing icon buttons) ...
+          Expanded(
+            child: TextField(
+              controller: messageController,
+              onSubmitted: (_) => onSend(), // Enter to send
+              decoration: const InputDecoration(
+                hintText: "Reply to customer...",
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.send, color: WebColors.buttonPurple),
-              onPressed: () {},
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            icon: Icon(Icons.send, color: WebColors.buttonPurple),
+            onPressed: () => onSend(),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildInChatProductCard() {
-    return Container(
-      width: 250,
-      margin: const EdgeInsets.symmetric(vertical: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: WebColors.bgWiteShade),
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: WebColors.bgWiteShade,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
-            ),
+  // Widget _buildInChatProductCard() {
+  //   return Container(
+  //     width: 250,
+  //     margin: const EdgeInsets.symmetric(vertical: 15),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       border: Border.all(color: WebColors.bgWiteShade),
+  //     ),
+  //     child: Column(
+  //       children: [
+  //         Container(
+  //           height: 120,
+  //           decoration: BoxDecoration(
+  //             color: WebColors.bgWiteShade,
+  //             borderRadius: const BorderRadius.vertical(
+  //               top: Radius.circular(12),
+  //             ),
+  //           ),
+  //         ),
+  //         Padding(
+  //           padding: const EdgeInsets.all(10),
+  //           child: Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //             children: [
+  //               const Text(
+  //                 "Apex Runner",
+  //                 style: TextStyle(fontWeight: FontWeight.bold),
+  //               ),
+  //               Text(
+  //                 "\$120",
+  //                 style: TextStyle(
+  //                   color: WebColors.buttonPurple,
+  //                   fontWeight: FontWeight.bold,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  void _showDeleteDialog(
+      BuildContext context, String chatId, String messageId) {
+    final chatService = ChatService();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Message?"),
+        content: const Text("Are you sure you want to delete this message?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Apex Runner",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "\$120",
-                  style: TextStyle(
-                    color: WebColors.buttonPurple,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await chatService.deleteMessage(chatId, messageId);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
