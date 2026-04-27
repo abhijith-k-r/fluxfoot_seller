@@ -17,7 +17,11 @@ class SellerChatDashboard extends StatelessWidget {
       children: [
         // 1. Recent Chats Sidebar (320px)
         _buildRecentChatsSidebar(context),
-
+        Container(
+          width: 5,
+          height: double.infinity,
+          color: WebColors.buttonPurple,
+        ),
         // 2. Main Chat Window (Expanded)
         Expanded(child: _buildMainChatWindow(context)),
       ],
@@ -37,13 +41,6 @@ class SellerChatDashboard extends StatelessWidget {
           if (snapshot.hasError) {
             Center(child: Text("Error: ${snapshot.error}"));
           }
-          // if (!snapshot.hasData) {
-          //   return SizedBox(
-          //     width: 5,
-          //     height: 30,
-          //     child: Center(child: const CircularProgressIndicator()),
-          //   );
-          // }
 
           final chats = snapshot.data ?? [];
           if (chats.isEmpty) {
@@ -65,47 +62,6 @@ class SellerChatDashboard extends StatelessWidget {
           );
         },
       ),
-
-      // Column(
-      //   children: [
-      //     Padding(
-      //       padding: const EdgeInsets.all(20),
-      //       child: Column(
-      //         children: [
-      //           Row(
-      //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //             children: [
-      //               const Text(
-      //                 "Recent Chats",
-      //                 style: TextStyle(
-      //                   fontSize: 20,
-      //                   fontWeight: FontWeight.bold,
-      //                 ),
-      //               ),
-      //               Icon(Icons.search, color: WebColors.iconGrey),
-      //             ],
-      //           ),
-      //           const SizedBox(height: 15),
-      //           Row(
-      //             children: [
-      //               _filterChip("All", isActive: true),
-      //               const SizedBox(width: 8),
-      //               _filterChip("Unread"),
-      //               const SizedBox(width: 8),
-      //               _filterChip("Resolved"),
-      //             ],
-      //           ),
-      //         ],
-      //       ),
-      //     ),
-      //     Expanded(
-      //       child: ListView.builder(
-      //         itemCount: 5,
-      //         itemBuilder: (context, index) => _buildChatListItem(index == 0),
-      //       ),
-      //     ),
-      //   ],
-      // ),
     );
   }
 
@@ -122,8 +78,10 @@ class SellerChatDashboard extends StatelessWidget {
 
     final chatData = chatProvider.selectedOrderContext!;
     final participants = List<String>.from(chatData['participants'] ?? []);
-    final userId =
-        participants.firstWhere((id) => id != sellerId, orElse: () => '');
+    final userId = participants.firstWhere(
+      (id) => id != sellerId,
+      orElse: () => '',
+    );
 
     return Column(
       children: [
@@ -154,16 +112,17 @@ class SellerChatDashboard extends StatelessWidget {
                     : null;
 
                 // Priority for Product Name: Chat Doc > Order Doc
-                productName = chatData?['productName'] ??
+                productName =
+                    chatData?['productName'] ??
                     orderData?['productName'] ??
                     "N/A";
 
                 return FutureBuilder<DocumentSnapshot>(
                   future: orderData != null
                       ? FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(orderData['userId'])
-                          .get()
+                            .collection('users')
+                            .doc(orderData['userId'])
+                            .get()
                       : null,
                   builder: (context, userSnapshot) {
                     final userData = userSnapshot.hasData
@@ -171,7 +130,8 @@ class SellerChatDashboard extends StatelessWidget {
                         : null;
 
                     // Priority for Customer Name: Chat Doc > User Doc
-                    customerName = chatData?['customerName'] ??
+                    customerName =
+                        chatData?['customerName'] ??
                         userData?['name'] ??
                         "User";
 
@@ -180,7 +140,8 @@ class SellerChatDashboard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
                         border: Border(
-                            bottom: BorderSide(color: WebColors.bgWiteShade)),
+                          bottom: BorderSide(color: WebColors.bgWiteShade),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -192,12 +153,16 @@ class SellerChatDashboard extends StatelessWidget {
                               Text(
                                 "Customer: $customerName",
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                               Text(
                                 "Product: $productName",
                                 style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey),
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                               Row(
                                 children: [
@@ -213,22 +178,13 @@ class SellerChatDashboard extends StatelessWidget {
                                   const Text(
                                     "Online",
                                     style: TextStyle(
-                                        fontSize: 12, color: Colors.grey),
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ],
                               ),
                             ],
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.receipt_long, size: 18),
-                            label: const Text("View Order Details"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: WebColors.buttonPurple,
-                              side: BorderSide(color: WebColors.bgWiteShade),
-                              elevation: 0,
-                            ),
                           ),
                         ],
                       ),
@@ -264,7 +220,10 @@ class SellerChatDashboard extends StatelessWidget {
                     return GestureDetector(
                       onLongPress: msg.senderId == sellerId
                           ? () => _showDeleteDialog(
-                              context, chatProvider.selectedChatId!, msg.id!)
+                              context,
+                              chatProvider.selectedChatId!,
+                              msg.id!,
+                            )
                           : null,
                       child: _buildMessageBubble(
                         msg.text,
@@ -284,25 +243,6 @@ class SellerChatDashboard extends StatelessWidget {
     );
   }
 
-  // // --- Helper Widgets ---
-  // Widget _filterChip(String label, {bool isActive = false}) {
-  //   return Container(
-  //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-  //     decoration: BoxDecoration(
-  //       color: isActive ? WebColors.buttonPurple : WebColors.bgWiteShade,
-  //       borderRadius: BorderRadius.circular(20),
-  //     ),
-  //     child: Text(
-  //       label,
-  //       style: TextStyle(
-  //         color: isActive ? Colors.white : Colors.black,
-  //         fontSize: 12,
-  //         fontWeight: FontWeight.bold,
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _buildChatListItem(Map<String, dynamic> chat, bool isActive) {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -317,10 +257,42 @@ class SellerChatDashboard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundColor: WebColors.bgWiteShade,
-            radius: 24,
-            child: const Icon(Icons.person, color: Colors.grey),
+          FutureBuilder<DocumentSnapshot>(
+            future: (chat['customerImageUrl'] == null ||
+                    chat['customerImageUrl'].toString().isEmpty)
+                ? FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(() {
+                    final List<String> participants =
+                        List<String>.from(chat['participants'] ?? []);
+                    final String sId =
+                        FirebaseAuth.instance.currentUser?.uid ?? '';
+                    return participants.firstWhere((id) => id != sId,
+                        orElse: () => '');
+                  }())
+                    .get()
+                : null,
+            builder: (context, userSnapshot) {
+              String? imageUrl = chat['customerImageUrl'];
+              if (imageUrl == null || imageUrl.isEmpty) {
+                if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                  final userData =
+                      userSnapshot.data!.data() as Map<String, dynamic>?;
+                  imageUrl = userData?['imageUrl'];
+                }
+              }
+
+              return CircleAvatar(
+                backgroundColor: WebColors.bgWiteShade,
+                radius: 24,
+                backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+                    ? NetworkImage(imageUrl)
+                    : null,
+                child: (imageUrl == null || imageUrl.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.grey)
+                    : null,
+              );
+            },
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -343,7 +315,8 @@ class SellerChatDashboard extends StatelessWidget {
                     Text(
                       chat['lastTimestamp'] != null
                           ? DateFormat('hh:mm a').format(
-                              (chat['lastTimestamp'] as Timestamp).toDate())
+                              (chat['lastTimestamp'] as Timestamp).toDate(),
+                            )
                           : "",
                       style: TextStyle(fontSize: 11, color: WebColors.iconGrey),
                     ),
@@ -446,50 +419,11 @@ class SellerChatDashboard extends StatelessWidget {
     );
   }
 
-  // Widget _buildInChatProductCard() {
-  //   return Container(
-  //     width: 250,
-  //     margin: const EdgeInsets.symmetric(vertical: 15),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       borderRadius: BorderRadius.circular(12),
-  //       border: Border.all(color: WebColors.bgWiteShade),
-  //     ),
-  //     child: Column(
-  //       children: [
-  //         Container(
-  //           height: 120,
-  //           decoration: BoxDecoration(
-  //             color: WebColors.bgWiteShade,
-  //             borderRadius: const BorderRadius.vertical(
-  //               top: Radius.circular(12),
-  //             ),
-  //           ),
-  //         ),
-  //         Padding(
-  //           padding: const EdgeInsets.all(10),
-  //           child: Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             children: [
-  //               const Text(
-  //                 "Apex Runner",
-  //                 style: TextStyle(fontWeight: FontWeight.bold),
-  //               ),
-  //               Text(
-  //                 "\$120",
-  //                 style: TextStyle(
-  //                   color: WebColors.buttonPurple,
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
   void _showDeleteDialog(
-      BuildContext context, String chatId, String messageId) {
+    BuildContext context,
+    String chatId,
+    String messageId,
+  ) {
     final chatService = ChatService();
     showDialog(
       context: context,

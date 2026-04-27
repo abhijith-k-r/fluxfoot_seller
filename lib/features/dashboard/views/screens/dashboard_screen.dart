@@ -55,46 +55,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        customText(
-                          24,
-                          'Dashboard',
-                          fontWeight: FontWeight.bold,
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                size: 16,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(width: 8),
-                              customText(
-                                14,
-                                'Jan 2024 - Dec 2024',
-                                webcolors: Colors.grey.shade700,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    customText(
+                      24,
+                      'Dashboard',
+                      fontWeight: FontWeight.bold,
                     ),
                     const SizedBox(height: 24),
 
